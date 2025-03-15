@@ -1,3 +1,4 @@
 dependences/
 build/
 CMakeLists模板.txt
+bin/
