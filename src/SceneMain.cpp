@@ -72,16 +72,16 @@ void SceneMain::handleEvents(SDL_Event* event) { }
 void SceneMain::keyboardControl()
 {
     auto keyboardState = SDL_GetKeyboardState(NULL);
-    if (keyboardState[SDL_SCANCODE_LEFT]) {
+    if (keyboardState[SDL_SCANCODE_LEFT] && player.position.x >= 0) {
         player.position.x -= .4;
     }
-    if (keyboardState[SDL_SCANCODE_RIGHT]) {
+    if (keyboardState[SDL_SCANCODE_RIGHT] && player.position.x <= game.getWindowWidth() - player.width) {
         player.position.x += .4;
     }
-    if (keyboardState[SDL_SCANCODE_UP]) {
+    if (keyboardState[SDL_SCANCODE_UP] && player.position.y >= 0) {
         player.position.y -= .4;
     }
-    if (keyboardState[SDL_SCANCODE_DOWN]) {
+    if (keyboardState[SDL_SCANCODE_DOWN] && player.position.y <= game.getWindowHeight() - player.height) {
         player.position.y += .4;
     }
 }
