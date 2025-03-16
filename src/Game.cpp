@@ -7,6 +7,8 @@ Game::~Game() { clean(); }
 
 void Game::init()
 {
+    frameTime = 1000 / FPS; // 每帧的时间间隔，单位为毫秒
+
     // SDL 初始化
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init Error: %s\n", SDL_GetError());
@@ -46,10 +48,19 @@ void Game::init()
 void Game::run()
 {
     while (isRunning) {
+        auto frameStart = SDL_GetTicks();
         SDL_Event event;
         handleEvent(&event);
-        update();
+        update(deltaTime);
         render();
+        auto frameEnd = SDL_GetTicks();
+        auto diff = frameEnd - frameStart;
+        if (diff < frameTime) {
+            SDL_Delay(frameTime - diff);
+            deltaTime = frameTime / 1000.0f;
+        }else{
+            deltaTime = diff / 1000.0f;
+        }
     }
 }
 
@@ -98,9 +109,9 @@ void Game::handleEvent(SDL_Event* event)
     }
 }
 
-void Game::update()
+void Game::update(float deltaTime)
 {
-    currentScene->update();
+    currentScene->update(deltaTime);
 }
 
 void Game::render()

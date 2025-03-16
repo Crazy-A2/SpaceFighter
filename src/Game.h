@@ -17,7 +17,7 @@ struct Game {
 
     void handleEvent(SDL_Event* event);
 
-    void update();
+    void update(float deltaTime);
 
     void render();
 
@@ -39,6 +39,9 @@ private:
     SDL_Renderer* renderer { nullptr };
     int windowWidth { 600 };
     int windowHeight { 800 };
+    int FPS { 60 };
+    Uint32 frameTime;
+    float deltaTime;
 
     Game() = default; // 私有化构造函数，防止外部创建对象
     // 禁止拷贝

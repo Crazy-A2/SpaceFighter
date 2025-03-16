@@ -12,11 +12,11 @@ struct SceneMain final : Scene {
     ~SceneMain();
 
     void init() override;
-    void update() override;
+    void update(float deltaTime) override;
     void render() override;
     void clean() override;
     void handleEvents(SDL_Event* event) override;
-    void keyboardControl();
+    void keyboardControl(float deltaTime);
 
 private:
     Game& game;

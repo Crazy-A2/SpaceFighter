@@ -35,9 +35,9 @@ void SceneMain::init()
     player.position.y = game.getWindowHeight() - player.height;
 }
 
-void SceneMain::update()
+void SceneMain::update(float deltaTime)
 {
-    keyboardControl();
+    keyboardControl(deltaTime);
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -69,19 +69,19 @@ void SceneMain::clean()
 
 void SceneMain::handleEvents(SDL_Event* event) { }
 
-void SceneMain::keyboardControl()
+void SceneMain::keyboardControl(float deltaTime)
 {
     auto keyboardState = SDL_GetKeyboardState(NULL);
     if (keyboardState[SDL_SCANCODE_LEFT] && player.position.x >= 0) {
-        player.position.x -= .4;
+        player.position.x -= deltaTime * player.speed;
     }
     if (keyboardState[SDL_SCANCODE_RIGHT] && player.position.x <= game.getWindowWidth() - player.width) {
-        player.position.x += .4;
+        player.position.x += deltaTime * player.speed;
     }
     if (keyboardState[SDL_SCANCODE_UP] && player.position.y >= 0) {
-        player.position.y -= .4;
+        player.position.y -= deltaTime * player.speed;
     }
     if (keyboardState[SDL_SCANCODE_DOWN] && player.position.y <= game.getWindowHeight() - player.height) {
-        player.position.y += .4;
+        player.position.y += deltaTime * player.speed;
     }
 }
