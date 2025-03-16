@@ -3,8 +3,7 @@
 #include "Scene.h"
 #include <SDL_events.h>
 
-struct SceneMain : Scene {
-    /* data */
+struct SceneMain final : Scene {
     SceneMain();
     ~SceneMain();
 
