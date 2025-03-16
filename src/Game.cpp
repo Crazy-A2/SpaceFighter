@@ -1,8 +1,7 @@
 #include "Game.h"
 #include "SceneMain.h"
+#include <SDL_image.h>
 #include <iostream>
-
-// Game::Game(/* args */) { }
 
 Game::~Game() { clean(); }
 
@@ -17,10 +16,9 @@ void Game::init()
     // 创建窗口
     window = SDL_CreateWindow(
         "太空战机",
-        SDL_WINDOWPOS_CENTERED,   
         SDL_WINDOWPOS_CENTERED,
-        windowWidth,
-        windowHeight,
+        SDL_WINDOWPOS_CENTERED,
+        windowWidth, windowHeight,
         SDL_WINDOW_SHOWN);
     if (window == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_CreateWindow Error: %s\n", SDL_GetError());
@@ -34,19 +32,23 @@ void Game::init()
         isRunning = false;
     }
 
+    // SDL_Image 初始化
+    if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_Init Error: %s\n", IMG_GetError());
+        isRunning = false;
+    }
+
     // 初始化当前场景
-    currentScene = new SceneMain();
+    // currentScene = new SceneMain();
+    changeScene(new SceneMain());
 }
 
 void Game::run()
 {
     while (isRunning) {
         SDL_Event event;
-
         handleEvent(&event);
-
         update();
-
         render();
     }
 }
@@ -57,6 +59,8 @@ void Game::clean()
         currentScene->clean();
         delete currentScene;
     }
+
+    IMG_Quit();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

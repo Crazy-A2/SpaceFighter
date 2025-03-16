@@ -9,9 +9,8 @@
 
 int main(int, char**)
 {
-    Game* game = new Game();
-    game->init();
-    game->run();
+    Game::getInstance().init();
+    Game::getInstance().run();
 }
 
 // int main(int, char**)
