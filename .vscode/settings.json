@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.cppm": "cpp",
+        "format": "cpp",
+        "xlocinfo": "cpp",
+        "xstring": "cpp"
+    }
+}

@@ -2,10 +2,10 @@
 cmake_minimum_required(VERSION 3.30.0)
 
 # 指定项目名
-project(sdl2-game VERSION 0.1.0)
+project(SpaceFighter VERSION 0.1.0)
 
 # 指定C++标准
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # 设置编译器选项
 if(MSVC)
@@ -17,21 +17,24 @@ endif()
 # 将源码目录(src)赋值给变量 SOURCE_DIR
 aux_source_directory(src SOURCE_DIR)
 
-# 指定链接库目录 须在 add_executable 之前
-# link_directories(${PROJECT_SOURCE_DIR}/dependences/SDL2/lib)
+# 指定要链接的库文件所在目录 须在 add_executable 之前
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 # 指定生成可执行文件 使用变量
-add_executable(sdl2-game ${SOURCE_DIR})
+add_executable(${PROJECT_NAME} ${SOURCE_DIR})
 
 # 指定可执行文件的生成位置
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
-# 添加 include 目录
+# 添加 include 目录 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# # 链接库文件
+# 链接库文件
+# Windows 下链接动态库需要编译时链接动态库的导入库（.lib）
 target_link_libraries(${PROJECT_NAME} SDL2 SDL2main SDL2_image SDL2_ttf SDL2_mixer)
+
+# 定义指向项目根目录的宏
+add_definitions(-DPROJECT_DIR="${PROJECT_SOURCE_DIR}")
 
 # -----------------------------------------------------------------------------
 # 第二种链接动态库的方式
