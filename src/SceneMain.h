@@ -16,6 +16,7 @@ struct SceneMain final : Scene {
     void render() override;
     void clean() override;
     void handleEvents(SDL_Event* event) override;
+    void keyboardControl();
 
 private:
     Game& game;

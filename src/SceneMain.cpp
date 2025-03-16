@@ -27,7 +27,7 @@ void SceneMain::init()
     // 将玩家飞船的宽度和高度缩小为原来的 1 / 4
     player.width *= .25;
     player.height *= .25;
-    
+
     // 设置玩家飞船的初始位置
     // 横坐标为窗口宽度的一半减去飞船宽度的一半，使飞船水平居中
     player.position.x = game.getWindowWidth() / 2 - player.width / 2;
@@ -35,7 +35,10 @@ void SceneMain::init()
     player.position.y = game.getWindowHeight() - player.height;
 }
 
-void SceneMain::update() { }
+void SceneMain::update()
+{
+    keyboardControl();
+}
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
 void SceneMain::render()
@@ -43,7 +46,7 @@ void SceneMain::render()
     // 创建一个 SDL_Rect 结构体，用于存储玩家飞船的起始位置和宽高
     // player.position.x 和 player.position.y 分别表示绘制玩家飞船的起始位置坐标（左上角）
     // player.width 和 player.height 分别表示玩家飞船的宽度和高度
-    SDL_Rect playerRect = {
+    SDL_Rect playerRect {
         static_cast<int>(player.position.x),
         static_cast<int>(player.position.y),
         player.width, player.height
@@ -65,3 +68,20 @@ void SceneMain::clean()
 }
 
 void SceneMain::handleEvents(SDL_Event* event) { }
+
+void SceneMain::keyboardControl()
+{
+    auto keyboardState = SDL_GetKeyboardState(NULL);
+    if (keyboardState[SDL_SCANCODE_LEFT]) {
+        player.position.x -= .4;
+    }
+    if (keyboardState[SDL_SCANCODE_RIGHT]) {
+        player.position.x += .4;
+    }
+    if (keyboardState[SDL_SCANCODE_UP]) {
+        player.position.y -= .4;
+    }
+    if (keyboardState[SDL_SCANCODE_DOWN]) {
+        player.position.y += .4;
+    }
+}
