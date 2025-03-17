@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include <SDL_events.h>
 #include <list>
+#include <random>
 
 // #include "Game.h"
 struct Game; // 不导入头文件 防止可能的循环引用
@@ -44,4 +45,8 @@ private:
     ProjectilePlayer projectilePlayerTemplate;
     // 存储玩家投射物对象的列表
     std::list<ProjectilePlayer*> projectilesPlayer;
+    // 定义一个随机数生成器对象 gen，使用 Mersenne Twister 19937 算法
+    std::mt19937 gen;
+    // 定义一个均匀分布的对象 dis，用于生成浮点数，范围默认为 [0, 1)
+    std::uniform_real_distribution<float> dis;
 };

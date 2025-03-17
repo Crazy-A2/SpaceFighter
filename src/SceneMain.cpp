@@ -2,6 +2,7 @@
 #include "Game.h"
 #include <SDL_image.h>
 #include <format>
+#include <random>
 
 SceneMain::SceneMain()
     : game(Game::getInstance())
@@ -13,6 +14,11 @@ SceneMain::~SceneMain() { }
 // 定义SceneMain类的init成员函数，用于初始化场景
 void SceneMain::init()
 {
+    // 初始化随机数生成器
+    std::random_device rd;
+    gen = std::mt19937(rd());
+    dis = std::uniform_real_distribution<float>(0.0f, 1.0f);
+
     // 加载玩家飞船的纹理图片，路径为PROJECT_DIR目录下的assets/image/SpaceShip.png
     // game.getRenderer()获取当前的SDL渲染器，std::format用于格式化字符串
     player.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/SpaceShip.png", PROJECT_DIR).c_str());
