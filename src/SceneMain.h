@@ -17,6 +17,7 @@ struct SceneMain final : Scene {
     void clean() override;
     void handleEvents(SDL_Event* event) override;
     void keyboardControl(float deltaTime);
+    void shootPlayer();
 
 private:
     Game& game;

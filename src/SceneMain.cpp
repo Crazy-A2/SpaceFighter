@@ -69,19 +69,38 @@ void SceneMain::clean()
 
 void SceneMain::handleEvents(SDL_Event* event) { }
 
+// SceneMain类的成员函数，用于处理键盘控制
 void SceneMain::keyboardControl(float deltaTime)
 {
+    // 获取当前键盘状态
     auto keyboardState = SDL_GetKeyboardState(NULL);
+    // 检查左键是否按下，并且玩家位置x坐标大于等于0
     if (keyboardState[SDL_SCANCODE_LEFT] && player.position.x >= 0) {
+        // 玩家向左移动，位置x坐标减去deltaTime乘以速度
         player.position.x -= deltaTime * player.speed;
     }
+    // 检查右键是否按下，并且玩家位置x坐标小于窗口宽度减去玩家宽度
     if (keyboardState[SDL_SCANCODE_RIGHT] && player.position.x <= game.getWindowWidth() - player.width) {
+        // 玩家向右移动，位置x坐标加上deltaTime乘以速度
         player.position.x += deltaTime * player.speed;
     }
+    // 检查上键是否按下，并且玩家位置y坐标大于等于0
     if (keyboardState[SDL_SCANCODE_UP] && player.position.y >= 0) {
+        // 玩家向上移动，位置y坐标减去deltaTime乘以速度
         player.position.y -= deltaTime * player.speed;
     }
+    // 检查下键是否按下，并且玩家位置y坐标小于窗口高度减去玩家高度
     if (keyboardState[SDL_SCANCODE_DOWN] && player.position.y <= game.getWindowHeight() - player.height) {
+        // 玩家向下移动，位置y坐标加上deltaTime乘以速度
         player.position.y += deltaTime * player.speed;
+    }
+
+    // 控制子弹发射
+    if (keyboardState[SDL_SCANCODE_SPACE]) {
+        auto currentTime = SDL_GetTicks();
+        if (currentTime - player.lastShootTime > player.coolDown) {
+            shootPlayer();
+            player.lastShootTime = currentTime;
+        }
     }
 }
