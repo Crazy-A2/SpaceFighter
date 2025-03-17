@@ -4,20 +4,29 @@
 
 // 定义玩家结构体
 struct Player {
-    SDL_Texture* texture { nullptr }; // 玩家的纹理指针，初始化为nullptr
-    SDL_FPoint position { 0, 0 }; // 玩家的位置，使用浮点数表示，初始化为(0, 0)
-    int width { 0 }; // 玩家的宽度，初始化为0
-    int height { 0 }; // 玩家的高度，初始化为0
-    int speed { 400 }; // 玩家的速度，单位为像素/秒，初始化为400
-    Uint32 coolDown { 200 }; // 玩家射击的冷却时间，单位为毫秒，初始化为200
-    Uint32 lastShootTime { 0 }; // 玩家上次射击的时间，单位为毫秒，初始化为0
+    SDL_Texture* texture { nullptr }; // 玩家的纹理指针
+    SDL_FPoint position { 0, 0 }; // 玩家的位置
+    int width { 0 }; // 玩家的宽度
+    int height { 0 }; // 玩家的高度
+    int speed { 400 }; // 玩家的速度
+    Uint32 coolDown { 200 }; // 玩家射击的冷却时间，单位为毫秒
+    Uint32 lastShootTime { 0 }; // 玩家上次射击的时间，单位为毫秒
 };
 
 // 定义玩家射出的子弹结构体
 struct ProjectilePlayer {
-    SDL_Texture* texture { nullptr }; // 子弹的纹理指针，初始化为nullptr
-    SDL_FPoint position { 0, 0 }; // 子弹的位置，使用浮点数表示，初始化为(0, 0)
-    int width { 0 }; // 子弹的宽度，初始化为0
-    int height { 0 }; // 子弹的高度，初始化为0
-    int speed { 500 }; // 子弹的速度，单位为像素/秒，初始化为600
+    SDL_Texture* texture { nullptr }; // 子弹的纹理指针
+    SDL_FPoint position { 0, 0 }; // 子弹的位置
+    int width { 0 }; // 子弹的宽度
+    int height { 0 }; // 子弹的高度
+    int speed { 500 }; // 子弹的速度
+};
+
+// 定义游戏中的敌人结构体
+struct Enemy {
+    SDL_Texture* texture { nullptr }; // 敌人的纹理指针
+    SDL_FPoint position { 0, 0 }; // 敌人的位置
+    int width { 0 }; // 敌人的宽度
+    int height { 0 }; // 敌人的高度
+    int speed { 300 }; // 敌人的移动速度
 };

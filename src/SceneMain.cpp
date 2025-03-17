@@ -46,12 +46,19 @@ void SceneMain::init()
     // 将子弹的宽度和高度缩小为原来的 1 / 4
     projectilePlayerTemplate.width /= 4;
     projectilePlayerTemplate.height /= 4;
+
+    enemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/insect-2.png", PROJECT_DIR).c_str());
+    SDL_QueryTexture(enemyTemplate.texture, NULL, NULL, &enemyTemplate.width, &enemyTemplate.height);
+    enemyTemplate.width /= 4;
+    enemyTemplate.height /= 4;
 }
 
 void SceneMain::update(float deltaTime)
 {
     keyboardControl(deltaTime);
     updatePlayerProjectiles(deltaTime);
+    spawEnemy();
+    updateEnemies(deltaTime);
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -72,6 +79,8 @@ void SceneMain::render()
     // NULL 表示源纹理的区域为整个纹理
     // &playerRect 表示目标纹理的区域，即玩家在屏幕上的位置和大小
     SDL_RenderCopy(game.getRenderer(), player.texture, NULL, &playerRect);
+
+    renderEnemies();
 }
 
 void SceneMain::clean()
@@ -79,21 +88,26 @@ void SceneMain::clean()
     // 清理容器
     for (auto& projectile : projectilesPlayer) {
         if (projectile != nullptr) {
-            // SDL_DestroyTexture(projectile.texture);
-            // projectile.texture = nullptr;
             delete projectile;
         }
     }
     projectilesPlayer.clear();
+    for (auto& enemy : enemies) {
+        if (enemy != nullptr) {
+            delete enemy;
+        }
+    }
+    enemies.clear();
 
     // 清理模板
     if (player.texture != nullptr) {
         SDL_DestroyTexture(player.texture);
-        // player.texture = nullptr;
     }
     if (projectilePlayerTemplate.texture != nullptr) {
         SDL_DestroyTexture(projectilePlayerTemplate.texture);
-        // projectilePlayerTemplate.texture = nullptr;
+    }
+    if (enemyTemplate.texture != nullptr) {
+        SDL_DestroyTexture(enemyTemplate.texture);
     }
 }
 
@@ -190,5 +204,43 @@ void SceneMain::renderPlayerProjectiles()
         // 参数3：源矩形，这里传入NULL表示使用整个纹理
         // 参数4：目标矩形，即projectileRect，定义了纹理在屏幕上的位置和大小
         SDL_RenderCopy(game.getRenderer(), projectile->texture, NULL, &projectileRect);
+    }
+}
+
+void SceneMain::spawEnemy()
+{
+    if (dis(gen) > 1 / 60.0f) {
+        return;
+    }
+    Enemy* enemy = new Enemy(enemyTemplate);
+    enemy->position.x = dis(gen) * (game.getWindowWidth() - enemy->width);
+    enemy->position.y = -enemy->height;
+    enemies.push_back(enemy);
+}
+
+void SceneMain::updateEnemies(float deltaTime)
+{
+    for (auto iterator = enemies.begin(); iterator != enemies.end();) {
+        auto enemy = *iterator;
+        enemy->position.y += enemy->speed * deltaTime;
+        if (enemy->position.y > game.getWindowHeight()) {
+            delete enemy;
+            iterator = enemies.erase(iterator);
+        } else {
+            ++iterator;
+        }
+    }
+}
+
+void SceneMain::renderEnemies()
+{
+    // 渲染敌人
+    for (auto& enemy : enemies) {
+        SDL_Rect enemyRect {
+            static_cast<int>(enemy->position.x),
+            static_cast<int>(enemy->position.y),
+            enemy->width, enemy->height
+        };
+        SDL_RenderCopy(game.getRenderer(), enemy->texture, NULL, &enemyRect);
     }
 }
