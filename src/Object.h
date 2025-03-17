@@ -9,7 +9,7 @@ struct Player {
     int width { 0 }; // 玩家的宽度，初始化为0
     int height { 0 }; // 玩家的高度，初始化为0
     int speed { 400 }; // 玩家的速度，单位为像素/秒，初始化为400
-    Uint32 coolDown { 0 }; // 玩家射击的冷却时间，单位为毫秒，初始化为0
+    Uint32 coolDown { 200 }; // 玩家射击的冷却时间，单位为毫秒，初始化为200
     Uint32 lastShootTime { 0 }; // 玩家上次射击的时间，单位为毫秒，初始化为0
 };
 
