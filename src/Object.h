@@ -29,4 +29,16 @@ struct Enemy {
     int width { 0 }; // 敌人的宽度
     int height { 0 }; // 敌人的高度
     int speed { 300 }; // 敌人的移动速度
+    Uint32 coolDown { 1000 }; // 敌人射击的冷却时间，单位为毫秒
+    Uint32 lastShootTime { 0 }; // 敌人上次射击的时间，单位为毫秒
+};
+
+// 定义敌人射出的子弹结构体
+struct ProjectileEnemy {
+    SDL_Texture* texture { nullptr }; // 子弹的纹理指针
+    SDL_FPoint position { 0, 0 }; // 子弹的位置
+    SDL_FPoint direction { 0, 0 }; // 子弹的方向
+    int width { 0 }; // 子弹的宽度
+    int height { 0 }; // 子弹的高度
+    int speed { 500 }; // 子弹的速度
 };

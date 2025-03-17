@@ -4,21 +4,13 @@
 #include <SDL.h>
 
 struct Game {
-
     ~Game();
-
     void run();
-
     void init();
-
     void clean();
-
     void changeScene(Scene* scene);
-
     void handleEvent(SDL_Event* event);
-
     void update(float deltaTime);
-
     void render();
 
     static Game& getInstance()

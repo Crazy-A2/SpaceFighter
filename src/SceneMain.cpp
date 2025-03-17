@@ -11,6 +11,20 @@ SceneMain::SceneMain()
 
 SceneMain::~SceneMain() { }
 
+template <typename T>
+static void initTextureByTemplate(Game& game, T& object, const char* imageName)
+{
+    object.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/{}", PROJECT_DIR, imageName).c_str());
+    // if (object.texture == nullptr) {
+    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load %s texture: %s", IMG_GetError());
+    //     return;
+    // }
+    SDL_QueryTexture(object.texture, NULL, NULL, &object.width, &object.height);
+    // 将图片纹理的宽度和高度缩小为原来的 1 / 4
+    object.width /= 4;
+    object.height /= 4;
+}
+
 // 定义SceneMain类的init成员函数，用于初始化场景
 void SceneMain::init()
 {
@@ -21,18 +35,19 @@ void SceneMain::init()
 
     // 加载玩家飞船的纹理图片，路径为PROJECT_DIR目录下的assets/image/SpaceShip.png
     // game.getRenderer()获取当前的SDL渲染器，std::format用于格式化字符串
-    player.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/SpaceShip.png", PROJECT_DIR).c_str());
-    if (player.texture == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load player texture: %s", IMG_GetError());
-        return;
-    }
+    // player.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/SpaceShip.png", PROJECT_DIR).c_str());
+    // if (player.texture == nullptr) {
+    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load player texture: %s", IMG_GetError());
+    //     return;
+    // }
 
-    // 查询纹理的宽度和高度，并将结果存储在player.width和player.height中
-    // SDL_QueryTexture函数的第一个参数是纹理，第二个和第三个参数是用于接收纹理格式和访问信息的指针（这里不需要，所以传入NULL）
-    SDL_QueryTexture(player.texture, NULL, NULL, &player.width, &player.height);
-    // 将玩家飞船的宽度和高度缩小为原来的 1 / 4
-    player.width /= 4;
-    player.height /= 4;
+    // // 查询纹理的宽度和高度，并将结果存储在player.width和player.height中
+    // // SDL_QueryTexture函数的第一个参数是纹理，第二个和第三个参数是用于接收纹理格式和访问信息的指针（这里不需要，所以传入NULL）
+    // SDL_QueryTexture(player.texture, NULL, NULL, &player.width, &player.height);
+    // // 将玩家飞船的宽度和高度缩小为原来的 1 / 4
+    // player.width /= 4;
+    // player.height /= 4;
+    initTextureByTemplate(game, player, "SpaceShip.png");
 
     // 设置玩家飞船的初始位置
     // 横坐标为窗口宽度的一半减去飞船宽度的一半，使飞船水平居中
@@ -41,30 +56,40 @@ void SceneMain::init()
     player.position.y = game.getWindowHeight() - player.height;
 
     // 初始化模板
-    projectilePlayerTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-3.png", PROJECT_DIR).c_str());
-    SDL_QueryTexture(projectilePlayerTemplate.texture, NULL, NULL, &projectilePlayerTemplate.width, &projectilePlayerTemplate.height);
-    // 将子弹的宽度和高度缩小为原来的 1 / 4
-    projectilePlayerTemplate.width /= 4;
-    projectilePlayerTemplate.height /= 4;
+    // projectilePlayerTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-3.png", PROJECT_DIR).c_str());
+    // SDL_QueryTexture(projectilePlayerTemplate.texture, NULL, NULL, &projectilePlayerTemplate.width, &projectilePlayerTemplate.height);
+    // projectilePlayerTemplate.width /= 4;
+    // projectilePlayerTemplate.height /= 4;
+    initTextureByTemplate(game, projectilePlayerTemplate, "laser-3.png");
 
-    enemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/insect-2.png", PROJECT_DIR).c_str());
-    SDL_QueryTexture(enemyTemplate.texture, NULL, NULL, &enemyTemplate.width, &enemyTemplate.height);
-    enemyTemplate.width /= 4;
-    enemyTemplate.height /= 4;
+    // enemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/insect-2.png", PROJECT_DIR).c_str());
+    // SDL_QueryTexture(enemyTemplate.texture, NULL, NULL, &enemyTemplate.width, &enemyTemplate.height);
+    // enemyTemplate.width /= 4;
+    // enemyTemplate.height /= 4;
+    initTextureByTemplate(game, enemyTemplate, "insect-2.png");
+
+    // projectileEnemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-2.png", PROJECT_DIR).c_str());
+    // SDL_QueryTexture(projectileEnemyTemplate.texture, NULL, NULL, &projectileEnemyTemplate.width, &projectileEnemyTemplate.height);
+    // projectileEnemyTemplate.width /= 4;
+    // projectileEnemyTemplate.height /= 4;
+    initTextureByTemplate(game, projectileEnemyTemplate, "laser-2.png");
 }
 
+// 更新游戏主场景中的状态
 void SceneMain::update(float deltaTime)
 {
-    keyboardControl(deltaTime);
-    updatePlayerProjectiles(deltaTime);
-    spawEnemy();
-    updateEnemies(deltaTime);
+    keyboardControl(deltaTime); // 根据键盘输入更新玩家状态
+    updatePlayerProjectiles(deltaTime); // 更新玩家发射的子弹状态
+    updateEnemyProjectiles(deltaTime); // 更新敌人发射的子弹状态
+    spawEnemy(); // 生成新的敌人
+    updateEnemies(deltaTime); // 更新敌人状态
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
 void SceneMain::render()
 {
     renderPlayerProjectiles(); // 渲染玩家发射的子弹
+    renderEnemyProjectiles(); // 渲染敌人
     // 创建一个 SDL_Rect 结构体，用于存储玩家飞船的起始位置和宽高
     // player.position.x 和 player.position.y 分别表示绘制玩家飞船的起始位置坐标（左上角）
     // player.width 和 player.height 分别表示玩家飞船的宽度和高度
@@ -98,6 +123,12 @@ void SceneMain::clean()
         }
     }
     enemies.clear();
+    for (auto& projectile : projectilesEnemy) {
+        if (projectile != nullptr) {
+            delete projectile;
+        }
+    }
+    projectilesEnemy.clear();
 
     // 清理模板
     if (player.texture != nullptr) {
@@ -108,6 +139,9 @@ void SceneMain::clean()
     }
     if (enemyTemplate.texture != nullptr) {
         SDL_DestroyTexture(enemyTemplate.texture);
+    }
+    if (projectileEnemyTemplate.texture != nullptr) {
+        SDL_DestroyTexture(projectileEnemyTemplate.texture);
     }
 }
 
@@ -220,6 +254,7 @@ void SceneMain::spawEnemy()
 
 void SceneMain::updateEnemies(float deltaTime)
 {
+    auto currentTime = SDL_GetTicks();
     for (auto iterator = enemies.begin(); iterator != enemies.end();) {
         auto enemy = *iterator;
         enemy->position.y += enemy->speed * deltaTime;
@@ -227,6 +262,10 @@ void SceneMain::updateEnemies(float deltaTime)
             delete enemy;
             iterator = enemies.erase(iterator);
         } else {
+            if (currentTime - enemy->lastShootTime > enemy->coolDown) {
+                shootEnemy(enemy);
+                enemy->lastShootTime = currentTime;
+            }
             ++iterator;
         }
     }
@@ -242,5 +281,66 @@ void SceneMain::renderEnemies()
             enemy->width, enemy->height
         };
         SDL_RenderCopy(game.getRenderer(), enemy->texture, NULL, &enemyRect);
+    }
+}
+
+void SceneMain::shootEnemy(Enemy* enemy)
+{
+    auto projectile = new ProjectileEnemy(projectileEnemyTemplate);
+    projectile->position.x = enemy->position.x + enemy->width / 2 - projectile->width / 2;
+    projectile->position.y = enemy->position.y + enemy->height / 2 - projectile->height / 2;
+    projectile->direction = getDirection(enemy);
+    projectilesEnemy.push_back(projectile);
+}
+
+// 定义SceneMain类中的getDirection方法，用于计算从敌人到玩家的方向向量
+SDL_FPoint SceneMain::getDirection(Enemy* enemy)
+{
+    auto x = (player.position.x + player.width / 2) - (enemy->position.x + enemy->width / 2);
+    auto y = (player.position.y + player.height / 2) - (enemy->position.y + enemy->height / 2);
+    auto length = sqrt(x * x + y * y); // 计算向量长度
+    x /= length; // 将x分量除以向量长度，得到单位向量的x分量
+    y /= length; // 将y分量除以向量长度，得到单位向量的y分量
+    return SDL_FPoint { x, y };
+}
+
+// 更新玩家发射的导弹位置
+void SceneMain::updateEnemyProjectiles(float deltaTime)
+{
+    // 定义一个边界值margin，用于判断导弹是否超出窗口边界
+    auto margin = 32;
+
+    // 使用迭代器遍历projectilesEnemy容器中的所有导弹
+    for (auto iterator = projectilesEnemy.begin(); iterator != projectilesEnemy.end();) {
+        // 获取当前迭代器指向的导弹对象
+        auto projectile = *iterator;
+        // 更新导弹的x坐标位置，根据导弹的速度、方向和经过的时间计算
+        projectile->position.x += projectile->speed * projectile->direction.x * deltaTime;
+        // 更新导弹的y坐标位置，根据导弹的速度、方向和经过的时间计算
+        projectile->position.y += projectile->speed * projectile->direction.y * deltaTime;
+        // 判断导弹是否超出窗口边界
+        if (projectile->position.y > game.getWindowHeight() + margin
+            || projectile->position.y < -margin
+            || projectile->position.x < -margin
+            || projectile->position.x > game.getWindowWidth() + margin) {
+            // 如果导弹超出边界，释放导弹对象的内存
+            delete projectile;
+            // 从projectilesEnemy容器中移除该导弹对象，并返回新的迭代器
+            iterator = projectilesEnemy.erase(iterator);
+        } else {
+            // 如果导弹未超出边界，继续遍历下一个导弹对象
+            ++iterator;
+        }
+    }
+}
+
+void SceneMain::renderEnemyProjectiles(){
+    for(auto& projectile : projectilesEnemy){
+        SDL_Rect projectileRect {
+            static_cast<int>(projectile->position.x),
+            static_cast<int>(projectile->position.y),
+            projectile->width, projectile->height
+        };
+        SDL_RenderCopy(game.getRenderer(), projectile->texture, NULL, &projectileRect);
     }
 }
