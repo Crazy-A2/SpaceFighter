@@ -334,13 +334,20 @@ void SceneMain::updateEnemyProjectiles(float deltaTime)
     }
 }
 
-void SceneMain::renderEnemyProjectiles(){
-    for(auto& projectile : projectilesEnemy){
+// 渲染敌人的子弹
+void SceneMain::renderEnemyProjectiles()
+{
+    // 遍历所有敌人的子弹
+    for (auto& projectile : projectilesEnemy) {
+        // 创建一个SDL_Rect结构体，用于定义子弹的矩形区域
         SDL_Rect projectileRect {
             static_cast<int>(projectile->position.x),
             static_cast<int>(projectile->position.y),
             projectile->width, projectile->height
         };
-        SDL_RenderCopy(game.getRenderer(), projectile->texture, NULL, &projectileRect);
+        // 计算子弹的旋转角度
+        // 以正下方为 0 度，顺时针旋转
+        float angle = atan2(projectile->direction.y, projectile->direction.x) * 180 / M_PI - 90;
+        SDL_RenderCopyEx(game.getRenderer(), projectile->texture, NULL, &projectileRect, angle, NULL, SDL_FLIP_NONE);
     }
 }
