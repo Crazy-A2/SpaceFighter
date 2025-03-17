@@ -139,15 +139,24 @@ void SceneMain::shootPlayer()
     projectilesPlayer.push_back(projectile); // 将子弹添加到子弹列表中
 }
 
+// SceneMain类的成员函数，用于更新玩家发射的投射物
 void SceneMain::updatePlayerProjectiles(float deltaTime)
 {
+    // 使用迭代器遍历玩家投射物列表
     for (auto iterator = projectilesPlayer.begin(); iterator != projectilesPlayer.end();) {
+        // 获取当前迭代器指向的投射物对象
         auto projectile = *iterator;
+        // 更新投射物的位置，沿y轴向下移动，移动距离为速度乘以时间差
         projectile->position.y -= projectile->speed * deltaTime;
-        if (projectile->position.y < -projectile->position.y) {
+        // 检查投射物是否超出屏幕范围（y坐标小于其高度负值）
+        if (projectile->position.y < -projectile->height) {
+            // 如果超出范围，释放投射物对象的内存
             delete projectile;
+            // 从列表中移除该投射物，并返回新的迭代器位置
             iterator = projectilesPlayer.erase(iterator);
+            SDL_Log("子弹被移除了...");
         } else {
+            // 如果未超出范围，继续遍历下一个投射物
             ++iterator;
         }
     }
