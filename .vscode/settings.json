@@ -3,6 +3,7 @@
         "*.cppm": "cpp",
         "format": "cpp",
         "xlocinfo": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "list": "cpp"
     }
 }

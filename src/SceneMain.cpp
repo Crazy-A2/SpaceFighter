@@ -33,11 +33,19 @@ void SceneMain::init()
     player.position.x = game.getWindowWidth() / 2 - player.width / 2;
     // 纵坐标为窗口高度减去飞船的高度，使飞船位于窗口底部
     player.position.y = game.getWindowHeight() - player.height;
+
+    // 初始化模板
+    projectilePlayerTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-3.png", PROJECT_DIR).c_str());
+    SDL_QueryTexture(projectilePlayerTemplate.texture, NULL, NULL, &projectilePlayerTemplate.width, &projectilePlayerTemplate.height);
+    // 将子弹的宽度和高度缩小为原来的 1 / 4
+    projectilePlayerTemplate.width *= .25;
+    projectilePlayerTemplate.height *= .25;
 }
 
 void SceneMain::update(float deltaTime)
 {
     keyboardControl(deltaTime);
+    updatePlayerProjectiles(deltaTime);
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -101,6 +109,29 @@ void SceneMain::keyboardControl(float deltaTime)
         if (currentTime - player.lastShootTime > player.coolDown) {
             shootPlayer();
             player.lastShootTime = currentTime;
+        }
+    }
+}
+
+void SceneMain::shootPlayer()
+{
+    // 发射子弹
+    auto projectile = new ProjectilePlayer(projectilePlayerTemplate);
+    // 初始化子弹的位置
+    projectile->position.x = player.position.x + player.width / 2 - projectile->width / 2;
+    projectile->position.y = player.position.y;
+    projectilesPlayer.push_back(projectile); // 将子弹添加到子弹列表中
+}
+
+void SceneMain::updatePlayerProjectiles(float deltaTime)
+{
+    for (auto projectile : projectilesPlayer) { // 遍历玩家发射的所有子弹
+        projectile->position.y -= projectile->speed * deltaTime; // 更新子弹的位置，根据子弹的速度和经过的时间计算新的Y坐标
+        if (projectile->position.y < 0) {
+            delete projectile;
+            projectilesPlayer.remove(projectile);
+            // 检查子弹是否超出屏幕顶部，如果是，则删除子弹并从列表中移除
+            
         }
     }
 }
