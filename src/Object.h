@@ -19,5 +19,5 @@ struct ProjectilePlayer {
     SDL_FPoint position { 0, 0 }; // 子弹的位置，使用浮点数表示，初始化为(0, 0)
     int width { 0 }; // 子弹的宽度，初始化为0
     int height { 0 }; // 子弹的高度，初始化为0
-    int speed { 600 }; // 子弹的速度，单位为像素/秒，初始化为600
+    int speed { 500 }; // 子弹的速度，单位为像素/秒，初始化为600
 };

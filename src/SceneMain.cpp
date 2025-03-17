@@ -25,8 +25,8 @@ void SceneMain::init()
     // SDL_QueryTexture函数的第一个参数是纹理，第二个和第三个参数是用于接收纹理格式和访问信息的指针（这里不需要，所以传入NULL）
     SDL_QueryTexture(player.texture, NULL, NULL, &player.width, &player.height);
     // 将玩家飞船的宽度和高度缩小为原来的 1 / 4
-    player.width *= .25;
-    player.height *= .25;
+    player.width /= 4;
+    player.height /= 4;
 
     // 设置玩家飞船的初始位置
     // 横坐标为窗口宽度的一半减去飞船宽度的一半，使飞船水平居中
@@ -38,8 +38,8 @@ void SceneMain::init()
     projectilePlayerTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-3.png", PROJECT_DIR).c_str());
     SDL_QueryTexture(projectilePlayerTemplate.texture, NULL, NULL, &projectilePlayerTemplate.width, &projectilePlayerTemplate.height);
     // 将子弹的宽度和高度缩小为原来的 1 / 4
-    projectilePlayerTemplate.width *= .25;
-    projectilePlayerTemplate.height *= .25;
+    projectilePlayerTemplate.width /= 4;
+    projectilePlayerTemplate.height /= 4;
 }
 
 void SceneMain::update(float deltaTime)
@@ -51,6 +51,7 @@ void SceneMain::update(float deltaTime)
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
 void SceneMain::render()
 {
+    renderPlayerProjectiles(); // 渲染玩家发射的子弹
     // 创建一个 SDL_Rect 结构体，用于存储玩家飞船的起始位置和宽高
     // player.position.x 和 player.position.y 分别表示绘制玩家飞船的起始位置坐标（左上角）
     // player.width 和 player.height 分别表示玩家飞船的宽度和高度
@@ -69,9 +70,24 @@ void SceneMain::render()
 
 void SceneMain::clean()
 {
+    // 清理容器
+    for (auto& projectile : projectilesPlayer) {
+        if (projectile != nullptr) {
+            // SDL_DestroyTexture(projectile.texture);
+            // projectile.texture = nullptr;
+            delete projectile;
+        }
+    }
+    projectilesPlayer.clear();
+
+    // 清理模板
     if (player.texture != nullptr) {
         SDL_DestroyTexture(player.texture);
-        player.texture = nullptr;
+        // player.texture = nullptr;
+    }
+    if (projectilePlayerTemplate.texture != nullptr) {
+        SDL_DestroyTexture(projectilePlayerTemplate.texture);
+        // projectilePlayerTemplate.texture = nullptr;
     }
 }
 
@@ -125,13 +141,39 @@ void SceneMain::shootPlayer()
 
 void SceneMain::updatePlayerProjectiles(float deltaTime)
 {
-    for (auto projectile : projectilesPlayer) { // 遍历玩家发射的所有子弹
-        projectile->position.y -= projectile->speed * deltaTime; // 更新子弹的位置，根据子弹的速度和经过的时间计算新的Y坐标
-        if (projectile->position.y < 0) {
+    for (auto iterator = projectilesPlayer.begin(); iterator != projectilesPlayer.end();) {
+        auto projectile = *iterator;
+        projectile->position.y -= projectile->speed * deltaTime;
+        if (projectile->position.y < -projectile->position.y) {
             delete projectile;
-            projectilesPlayer.remove(projectile);
-            // 检查子弹是否超出屏幕顶部，如果是，则删除子弹并从列表中移除
-            
+            iterator = projectilesPlayer.erase(iterator);
+        } else {
+            ++iterator;
         }
+    }
+}
+
+// 定义SceneMain类的成员函数renderPlayerProjectiles，用于渲染玩家发射的投射物
+void SceneMain::renderPlayerProjectiles()
+{
+    // 遍历projectilesPlayer容器中的每一个投射物
+    for (auto projectile : projectilesPlayer) {
+        // 创建一个SDL_Rect结构体，用于定义投射物的矩形区域
+        SDL_Rect projectileRect {
+            // 将投射物的x坐标转换为整数并赋值给矩形区域的x坐标
+            static_cast<int>(projectile->position.x),
+            // 将投射物的y坐标转换为整数并赋值给矩形区域的y坐标
+            static_cast<int>(projectile->position.y),
+            // 将投射物的宽度赋值给矩形区域的宽度
+            projectile->width,
+            // 将投射物的高度赋值给矩形区域的高度
+            projectile->height
+        };
+        // 使用SDL_RenderCopy函数将投射物的纹理绘制到渲染器上
+        // 参数1：渲染器，通过game对象的getRenderer方法获取
+        // 参数2：投射物的纹理
+        // 参数3：源矩形，这里传入NULL表示使用整个纹理
+        // 参数4：目标矩形，即projectileRect，定义了纹理在屏幕上的位置和大小
+        SDL_RenderCopy(game.getRenderer(), projectile->texture, NULL, &projectileRect);
     }
 }
