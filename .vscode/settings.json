@@ -4,6 +4,7 @@
         "format": "cpp",
         "xlocinfo": "cpp",
         "xstring": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "random": "cpp"
     }
 }
