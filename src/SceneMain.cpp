@@ -33,20 +33,6 @@ void SceneMain::init()
     gen = std::mt19937(rd());
     dis = std::uniform_real_distribution<float>(0.0f, 1.0f);
 
-    // 加载玩家飞船的纹理图片，路径为PROJECT_DIR目录下的assets/image/SpaceShip.png
-    // game.getRenderer()获取当前的SDL渲染器，std::format用于格式化字符串
-    // player.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/SpaceShip.png", PROJECT_DIR).c_str());
-    // if (player.texture == nullptr) {
-    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load player texture: %s", IMG_GetError());
-    //     return;
-    // }
-
-    // // 查询纹理的宽度和高度，并将结果存储在player.width和player.height中
-    // // SDL_QueryTexture函数的第一个参数是纹理，第二个和第三个参数是用于接收纹理格式和访问信息的指针（这里不需要，所以传入NULL）
-    // SDL_QueryTexture(player.texture, NULL, NULL, &player.width, &player.height);
-    // // 将玩家飞船的宽度和高度缩小为原来的 1 / 4
-    // player.width /= 4;
-    // player.height /= 4;
     initTextureByTemplate(game, player, "SpaceShip.png");
 
     // 设置玩家飞船的初始位置
@@ -56,22 +42,10 @@ void SceneMain::init()
     player.position.y = game.getWindowHeight() - player.height;
 
     // 初始化模板
-    // projectilePlayerTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-3.png", PROJECT_DIR).c_str());
-    // SDL_QueryTexture(projectilePlayerTemplate.texture, NULL, NULL, &projectilePlayerTemplate.width, &projectilePlayerTemplate.height);
-    // projectilePlayerTemplate.width /= 4;
-    // projectilePlayerTemplate.height /= 4;
     initTextureByTemplate(game, projectilePlayerTemplate, "laser-3.png");
 
-    // enemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/insect-2.png", PROJECT_DIR).c_str());
-    // SDL_QueryTexture(enemyTemplate.texture, NULL, NULL, &enemyTemplate.width, &enemyTemplate.height);
-    // enemyTemplate.width /= 4;
-    // enemyTemplate.height /= 4;
     initTextureByTemplate(game, enemyTemplate, "insect-2.png");
 
-    // projectileEnemyTemplate.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/laser-2.png", PROJECT_DIR).c_str());
-    // SDL_QueryTexture(projectileEnemyTemplate.texture, NULL, NULL, &projectileEnemyTemplate.width, &projectileEnemyTemplate.height);
-    // projectileEnemyTemplate.width /= 4;
-    // projectileEnemyTemplate.height /= 4;
     initTextureByTemplate(game, projectileEnemyTemplate, "laser-2.png");
 }
 
@@ -210,8 +184,40 @@ void SceneMain::updatePlayerProjectiles(float deltaTime)
             iterator = projectilesPlayer.erase(iterator);
             SDL_Log("子弹被移除了...");
         } else {
-            // 如果未超出范围，继续遍历下一个投射物
-            ++iterator;
+            bool hit = false;
+            // 遍历敌人列表，检查是否有敌人被击中
+            for (auto enemy : enemies) {
+                // 创建投射物和敌人的矩形区域
+                SDL_Rect projectileRect {
+                    static_cast<int>(projectile->position.x),
+                    static_cast<int>(projectile->position.y),
+                    projectile->width,
+                    projectile->height
+                };
+                SDL_Rect enemyRect {
+                    static_cast<int>(enemy->position.x),
+                    static_cast<int>(enemy->position.y),
+                    enemy->width,
+                    enemy->height
+                };
+
+                // 检查投射物和敌人是否相交
+                if (SDL_HasIntersection(&projectileRect, &enemyRect)) {
+                    // 如果相交，减少敌人的当前生命值
+                    enemy->currentHealth -= projectile->damage;
+                    // 释放投射物对象的内存
+                    delete projectile;
+                    // 从列表中移除该投射物，并返回新的迭代器位置
+                    iterator = projectilesPlayer.erase(iterator);
+                    hit = true;
+                    // 跳出敌人列表的循环
+                    break;
+                }
+            }
+            // 如果投射物未击中任何敌人，继续遍历下一个投射物
+            if (!hit) {
+                ++iterator;
+            }
         }
     }
 }
@@ -252,21 +258,41 @@ void SceneMain::spawEnemy()
     enemies.push_back(enemy);
 }
 
+// SceneMain类的成员函数，用于更新敌人的状态
 void SceneMain::updateEnemies(float deltaTime)
 {
+    // 获取当前时间，单位为毫秒
     auto currentTime = SDL_GetTicks();
+    // 遍历敌人列表
     for (auto iterator = enemies.begin(); iterator != enemies.end();) {
+        // 获取当前迭代器指向的敌人对象
         auto enemy = *iterator;
+        // 更新敌人的位置，根据敌人的速度和时间的增量计算新的y坐标
         enemy->position.y += enemy->speed * deltaTime;
+        // 检查敌人是否超出窗口的底部边界
         if (enemy->position.y > game.getWindowHeight()) {
+            // 如果超出边界，删除该敌人对象
             delete enemy;
+            // 从敌人列表中移除该敌人，并更新迭代器指向下一个有效元素
             iterator = enemies.erase(iterator);
         } else {
+            // 如果未超出边界，检查敌人的冷却时间是否已过
             if (currentTime - enemy->lastShootTime > enemy->coolDown) {
+                // 如果冷却时间已过，调用shootEnemy函数让敌人射击
                 shootEnemy(enemy);
+                // 更新敌人的最后射击时间为当前时间
                 enemy->lastShootTime = currentTime;
             }
-            ++iterator;
+            // 检查敌人的当前生命值是否小于等于0
+            if (enemy->currentHealth <= 0) {
+                // 如果生命值小于等于0，调用enemyExplode函数处理敌人爆炸
+                enemyExplode(enemy);
+                // 从敌人列表中移除该敌人，并更新迭代器指向下一个有效元素
+                iterator = enemies.erase(iterator);
+            } else {
+                // 如果生命值大于0，迭代器指向下一个敌人
+                ++iterator;
+            }
         }
     }
 }
@@ -350,4 +376,9 @@ void SceneMain::renderEnemyProjectiles()
         float angle = atan2(projectile->direction.y, projectile->direction.x) * 180 / M_PI - 90;
         SDL_RenderCopyEx(game.getRenderer(), projectile->texture, NULL, &projectileRect, angle, NULL, SDL_FLIP_NONE);
     }
+}
+
+void SceneMain::enemyExplode(Enemy* enemy)
+{
+    delete enemy;
 }

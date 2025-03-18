@@ -30,6 +30,7 @@ struct SceneMain final : Scene {
     SDL_FPoint getDirection(Enemy* enemy); // 获取敌人射击方向
     void updateEnemyProjectiles(float deltaTime); // 计算敌人子弹相关逻辑 deltaTime 表示时间间隔
     void renderEnemyProjectiles(); // 渲染敌人子弹
+    void enemyExplode(Enemy* enemy); // 敌人死亡
 
 private:
     Game& game; // 引用 Game 对象，用于访问游戏状态和资源
