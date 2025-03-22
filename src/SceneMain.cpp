@@ -57,6 +57,7 @@ void SceneMain::update(float deltaTime)
     updateEnemyProjectiles(deltaTime); // 更新敌人发射的子弹状态
     spawEnemy(); // 生成新的敌人
     updateEnemies(deltaTime); // 更新敌人状态
+    updatePlayer(deltaTime); // 更新玩家状态
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -64,20 +65,23 @@ void SceneMain::render()
 {
     renderPlayerProjectiles(); // 渲染玩家发射的子弹
     renderEnemyProjectiles(); // 渲染敌人
-    // 创建一个 SDL_Rect 结构体，用于存储玩家飞船的起始位置和宽高
-    // player.position.x 和 player.position.y 分别表示绘制玩家飞船的起始位置坐标（左上角）
-    // player.width 和 player.height 分别表示玩家飞船的宽度和高度
-    SDL_Rect playerRect {
-        static_cast<int>(player.position.x),
-        static_cast<int>(player.position.y),
-        player.width, player.height
-    };
-    // 使用SDL_RenderCopy函数将玩家的纹理贴图渲染到屏幕上
-    // game.getRenderer() 获取当前的SDL渲染器
-    // player.texture 表示玩家的纹理贴图
-    // NULL 表示源纹理的区域为整个纹理
-    // &playerRect 表示目标纹理的区域，即玩家在屏幕上的位置和大小
-    SDL_RenderCopy(game.getRenderer(), player.texture, NULL, &playerRect);
+
+    if (!isDead) {
+        // 创建一个 SDL_Rect 结构体，用于存储玩家飞船的起始位置和宽高
+        // player.position.x 和 player.position.y 分别表示绘制玩家飞船的起始位置坐标（左上角）
+        // player.width 和 player.height 分别表示玩家飞船的宽度和高度
+        SDL_Rect playerRect {
+            static_cast<int>(player.position.x),
+            static_cast<int>(player.position.y),
+            player.width, player.height
+        };
+        // 使用SDL_RenderCopy函数将玩家的纹理贴图渲染到屏幕上
+        // game.getRenderer() 获取当前的SDL渲染器
+        // player.texture 表示玩家的纹理贴图
+        // NULL 表示源纹理的区域为整个纹理
+        // &playerRect 表示目标纹理的区域，即玩家在屏幕上的位置和大小
+        SDL_RenderCopy(game.getRenderer(), player.texture, NULL, &playerRect);
+    }
 
     renderEnemies();
 }
@@ -124,6 +128,10 @@ void SceneMain::handleEvents(SDL_Event* event) { }
 // SceneMain类的成员函数，用于处理键盘控制
 void SceneMain::keyboardControl(float deltaTime)
 {
+    if (isDead) {
+        return;
+    }
+
     // 获取当前键盘状态
     auto keyboardState = SDL_GetKeyboardState(NULL);
     // 检查左键是否按下，并且玩家位置x坐标大于等于0
@@ -277,12 +285,30 @@ void SceneMain::updateEnemies(float deltaTime)
             iterator = enemies.erase(iterator);
         } else {
             // 如果未超出边界，检查敌人的冷却时间是否已过
-            if (currentTime - enemy->lastShootTime > enemy->coolDown) {
+            if (currentTime - enemy->lastShootTime > enemy->coolDown && !isDead) {
                 // 如果冷却时间已过，调用shootEnemy函数让敌人射击
                 shootEnemy(enemy);
                 // 更新敌人的最后射击时间为当前时间
                 enemy->lastShootTime = currentTime;
             }
+
+            SDL_Rect enemyRect {
+                static_cast<int>(enemy->position.x),
+                static_cast<int>(enemy->position.y),
+                enemy->width, enemy->height
+            };
+            SDL_Rect playerRect {
+                static_cast<int>(player.position.x),
+                static_cast<int>(player.position.y),
+                player.width, player.height
+            };
+            // 检查敌人是否与玩家碰撞
+            if (SDL_HasIntersection(&enemyRect, &playerRect)) {
+                // 如果碰撞，调用playerHit函数处理玩家被击中
+                player.currentHealth -= 1;
+                enemy->currentHealth = 0;
+            }
+
             // 检查敌人的当前生命值是否小于等于0
             if (enemy->currentHealth <= 0) {
                 // 如果生命值小于等于0，调用enemyExplode函数处理敌人爆炸
@@ -330,7 +356,7 @@ SDL_FPoint SceneMain::getDirection(Enemy* enemy)
     return SDL_FPoint { x, y };
 }
 
-// 更新玩家发射的导弹位置
+// 更新敌人发射的导弹状态
 void SceneMain::updateEnemyProjectiles(float deltaTime)
 {
     // 定义一个边界值margin，用于判断导弹是否超出窗口边界
@@ -354,8 +380,24 @@ void SceneMain::updateEnemyProjectiles(float deltaTime)
             // 从projectilesEnemy容器中移除该导弹对象，并返回新的迭代器
             iterator = projectilesEnemy.erase(iterator);
         } else {
-            // 如果导弹未超出边界，继续遍历下一个导弹对象
-            ++iterator;
+            SDL_Rect projectileRect {
+                static_cast<int>(projectile->position.x),
+                static_cast<int>(projectile->position.y),
+                projectile->width, projectile->height
+            };
+            SDL_Rect playerRect {
+                static_cast<int>(player.position.x),
+                static_cast<int>(player.position.y),
+                player.width, player.height
+            };
+            // 判断导弹是否与玩家碰撞
+            if (SDL_HasIntersection(&projectileRect, &playerRect) && !isDead) {
+                player.currentHealth -= projectile->damage;
+                delete projectile;
+                iterator = projectilesEnemy.erase(iterator);
+            } else {
+                ++iterator;
+            }
         }
     }
 }
@@ -381,4 +423,15 @@ void SceneMain::renderEnemyProjectiles()
 void SceneMain::enemyExplode(Enemy* enemy)
 {
     delete enemy;
+}
+
+// 更新玩家状态
+void SceneMain::updatePlayer(float deltaTime)
+{
+    if (isDead) {
+        return;
+    }
+    if (player.currentHealth <= 0) {
+        isDead = true;
+    }
 }

@@ -31,6 +31,7 @@ struct SceneMain final : Scene {
     void updateEnemyProjectiles(float deltaTime); // 计算敌人子弹相关逻辑 deltaTime 表示时间间隔
     void renderEnemyProjectiles(); // 渲染敌人子弹
     void enemyExplode(Enemy* enemy); // 敌人死亡
+    void updatePlayer(float deltaTime); // 更新玩家状态
 
 private:
     Game& game; // 引用 Game 对象，用于访问游戏状态和资源
@@ -43,4 +44,5 @@ private:
     std::list<ProjectileEnemy*> projectilesEnemy; // 存储敌人子弹对象的子弹列表
     std::mt19937 gen; // 定义一个随机数生成器对象 gen，使用 Mersenne Twister 19937 算法
     std::uniform_real_distribution<float> dis; // 定义一个均匀分布的对象 dis，用于生成浮点数
+    bool isDead {}; // 用于表示玩家是否死亡
 };
