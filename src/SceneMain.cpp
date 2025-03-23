@@ -2,6 +2,7 @@
 #include "Game.h"
 #include <SDL_image.h>
 #include <format>
+#include <iostream>
 #include <random>
 
 SceneMain::SceneMain()
@@ -12,17 +13,24 @@ SceneMain::SceneMain()
 SceneMain::~SceneMain() { }
 
 template <typename T>
-static void initTextureByTemplate(Game& game, T& object, const char* imageName)
+static void initTextureByTemplate(Game& game, T& object, const char* imageName, bool isSquare = false)
 {
-    object.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/{}", PROJECT_DIR, imageName).c_str());
+    object.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/{}", PROJECT_DIR, imageName).c_str());
     // if (object.texture == nullptr) {
     //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load %s texture: %s", IMG_GetError());
     //     return;
     // }
     SDL_QueryTexture(object.texture, NULL, NULL, &object.width, &object.height);
     // 将图片纹理的宽度和高度缩小为原来的 1 / 4
-    object.width /= 4;
-    object.height /= 4;
+    if (!isSquare) {
+        object.height /= 4;
+    }
+    // if (width) {
+    //     object.width = width;
+    // } else {
+    //     object.width /= 4;
+    // }
+    object.width = isSquare ? object.height : (object.width / 4);
 }
 
 // 定义SceneMain类的init成员函数，用于初始化场景
@@ -33,7 +41,7 @@ void SceneMain::init()
     gen = std::mt19937(rd());
     dis = std::uniform_real_distribution<float>(0.0f, 1.0f);
 
-    initTextureByTemplate(game, player, "SpaceShip.png");
+    initTextureByTemplate(game, player, "image/SpaceShip.png");
 
     // 设置玩家飞船的初始位置
     // 横坐标为窗口宽度的一半减去飞船宽度的一半，使飞船水平居中
@@ -42,11 +50,12 @@ void SceneMain::init()
     player.position.y = game.getWindowHeight() - player.height;
 
     // 初始化模板
-    initTextureByTemplate(game, projectilePlayerTemplate, "laser-3.png");
-
-    initTextureByTemplate(game, enemyTemplate, "insect-2.png");
-
-    initTextureByTemplate(game, projectileEnemyTemplate, "laser-2.png");
+    initTextureByTemplate(game, projectilePlayerTemplate, "image/laser-3.png");
+    initTextureByTemplate(game, enemyTemplate, "image/insect-2.png");
+    initTextureByTemplate(game, projectileEnemyTemplate, "image/laser-2.png");
+    initTextureByTemplate(game, explosionTemplate, "effect/explosion.png", true);
+    // 设置爆炸动画的帧数 防止序列动画文件被替换后导致帧数不匹配
+    explosionTemplate.totalFrames = explosionTemplate.width / explosionTemplate.height;
 }
 
 // 更新游戏主场景中的状态
@@ -58,6 +67,7 @@ void SceneMain::update(float deltaTime)
     spawEnemy(); // 生成新的敌人
     updateEnemies(deltaTime); // 更新敌人状态
     updatePlayer(deltaTime); // 更新玩家状态
+    updateExplosions(deltaTime); // 更新爆炸效果
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -84,6 +94,8 @@ void SceneMain::render()
     }
 
     renderEnemies();
+    // 渲染爆炸动画
+    renderExplosions();
 }
 
 void SceneMain::clean()
@@ -420,18 +432,91 @@ void SceneMain::renderEnemyProjectiles()
     }
 }
 
+template <typename ReferencePoint>
+static void addExplosion(const Explosion& explosionTemplate, ReferencePoint object, std::list<Explosion*>& explosions)
+{
+    auto currentTime = SDL_GetTicks();
+    auto explosion = new Explosion(explosionTemplate);
+    explosion->position.x = object->position.x + object->width / 2 - explosion->width / 2;
+    explosion->position.y = object->position.y + object->height / 2 - explosion->height / 2;
+    explosion->startTime = currentTime;
+    explosions.push_back(explosion);
+}
+
 void SceneMain::enemyExplode(Enemy* enemy)
 {
+    // auto currentTime = SDL_GetTicks();
+    // auto explosion = new Explosion(explosionTemplate);
+    // explosion->position.x = enemy->position.x + enemy->width / 2 - explosion->width / 2;
+    // explosion->position.y = enemy->position.y + enemy->height / 2 - explosion->height / 2;
+    // explosion->startTime = currentTime;
+    // explosions.push_back(explosion);
+    addExplosion(explosionTemplate, enemy, explosions);
     delete enemy;
 }
 
 // 更新玩家状态
-void SceneMain::updatePlayer(float deltaTime)
+void SceneMain::updatePlayer(float)
 {
     if (isDead) {
         return;
     }
     if (player.currentHealth <= 0) {
+        // auto currentTime = SDL_GetTicks();
         isDead = true;
+        // auto explosion = new Explosion(explosionTemplate);
+        // explosion->position.x = player.position.x + player.width / 2 - explosion->width / 2;
+        // explosion->position.y = player.position.y + player.height / 2 - explosion->height / 2;
+        // explosion->startTime = currentTime;
+        // explosions.push_back(explosion);
+        addExplosion(explosionTemplate, &player, explosions);
+    }
+}
+
+void SceneMain::updateExplosions(float)
+{
+    // 获取当前时间（以毫秒为单位）
+    auto currentTime = SDL_GetTicks();
+    // 遍历所有爆炸效果
+    for (auto iterator = explosions.begin(); iterator != explosions.end();) {
+        // 获取当前迭代器指向的爆炸效果对象
+        auto explosion = *iterator;
+        // 计算当前帧数，根据当前时间减去爆炸开始时间，再乘以每秒帧数（FPS），最后除以1000将毫秒转换为秒
+        explosion->currentFrame = (currentTime - explosion->startTime) * explosion->FPS / 1000;
+        // 如果当前帧数大于或等于总帧数，表示爆炸效果播放完毕
+        if (explosion->currentFrame > explosion->totalFrames) {
+            // 删除爆炸效果对象，释放内存
+            delete explosion;
+            // 从爆炸效果列表中移除当前迭代器指向的元素，并返回新的迭代器
+            iterator = explosions.erase(iterator);
+        } else {
+            // 如果爆炸效果还未播放完毕，继续遍历下一个元素
+            ++iterator;
+        }
+    }
+}
+
+// 渲染爆炸效果
+void SceneMain::renderExplosions()
+{
+    // 遍历explosions容器中的每一个爆炸对象
+    for (auto explosion : explosions) {
+        // 定义源矩形src，用于指定纹理中爆炸动画当前帧的位置和大小
+        SDL_Rect src {
+            explosion->currentFrame * explosion->width, // 计算当前帧在纹理中的x坐标
+            0, // y坐标固定为0，假设所有帧都在同一行
+            explosion->width, explosion->height
+        };
+        SDL_Rect dst {
+            static_cast<int>(explosion->position.x),
+            static_cast<int>(explosion->position.y),
+            explosion->width, explosion->height
+        };
+        SDL_RenderCopy(game.getRenderer(), explosion->texture, &src, &dst);
+
+        using std::cout, std::format;
+        cout << format("源矩形{} {} {} {}\n", src.x, src.y, src.w, src.h);
+        // cout << format("目标矩形{} {} {} {}\n", dst.x, dst.y, dst.w, dst.h);
+        cout << format("当前帧：{}\n\n", explosion->currentFrame);
     }
 }

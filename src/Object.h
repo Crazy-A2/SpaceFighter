@@ -46,3 +46,16 @@ struct ProjectileEnemy {
     int speed { 500 }; // 子弹的速度
     int damage { 1 }; // 子弹的伤害值
 };
+
+// 定义爆炸效果结构体
+struct Explosion {
+    SDL_Texture* texture { nullptr }; // 爆炸的纹理指针
+    SDL_FPoint position { 0, 0 }; // 爆炸的位置
+    int width { 0 }; // 爆炸的宽度
+    int height { 0 }; // 爆炸的高度
+    int currentFrame { 0 }; // 爆炸的当前帧
+    int totalFrames { 8 }; // 爆炸的总帧数
+    Uint32 startTime { 0 }; // 爆炸开始的时间，单位为毫秒
+    // Uint32 duration { 500 }; // 爆炸的持续时间，单位为毫秒
+    Uint32 FPS { 10 }; // 爆炸的帧率，单位为帧/秒
+};
