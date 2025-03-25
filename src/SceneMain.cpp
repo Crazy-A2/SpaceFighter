@@ -16,22 +16,32 @@ template <typename T>
 static void initTextureByTemplate(Game& game, T& object, const char* imageName, bool isSquare = false)
 {
     object.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/{}", PROJECT_DIR, imageName).c_str());
-    // if (object.texture == nullptr) {
-    //     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load %s texture: %s", IMG_GetError());
-    //     return;
-    // }
     SDL_QueryTexture(object.texture, NULL, NULL, &object.width, &object.height);
     // 将图片纹理的宽度和高度缩小为原来的 1 / 4
     if (!isSquare) {
         object.height /= 4;
     }
-
     object.width = isSquare ? object.height : (object.width / 4);
 }
 
 // 定义SceneMain类的init成员函数，用于初始化场景
 void SceneMain::init()
 {
+    // 读取并播放背景音乐
+    bgm = Mix_LoadMUS(std::format("{}/assets/music/03_Racing_Through_Asteroids_Loop.ogg", PROJECT_DIR).c_str());
+    if (bgm == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load music: %s", Mix_GetError());
+    }
+    Mix_PlayMusic(bgm, -1); // -1 表示循环播放
+
+    // 读取音效
+    sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/laser_shoot4.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/xs_laser.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::PLAYER_EXPLODE] = Mix_LoadWAV(std::format("{}/assets/sound/explosion2.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::ENEMY_EXPLODE] = Mix_LoadWAV(std::format("{}/assets/sound/explosion3.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::GET_ITEM] = Mix_LoadWAV(std::format("{}/assets/sound/eff11.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::HIT] = Mix_LoadWAV(std::format("{}/assets/sound/eff5.wav", PROJECT_DIR).c_str());
+
     // 初始化随机数生成器
     std::random_device rd;
     gen = std::mt19937(rd());
@@ -119,6 +129,13 @@ static void destroyTextureTemplate(T& object)
 
 void SceneMain::clean()
 {
+    for (auto& sound : sounds) {
+        if (sound.second != nullptr) {
+            Mix_FreeChunk(sound.second);
+        }
+    }
+    sounds.clear();
+
     cleanContainer(projectilesPlayer);
     cleanContainer(enemies);
     cleanContainer(projectilesEnemy);
@@ -131,6 +148,12 @@ void SceneMain::clean()
     destroyTextureTemplate(projectileEnemyTemplate);
     destroyTextureTemplate(explosionTemplate);
     destroyTextureTemplate(itemLifeTemplate);
+
+    // 停止播放背景音乐并释放内存
+    if (bgm != nullptr) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(bgm);
+    }
 }
 
 void SceneMain::handleEvents(SDL_Event* event) { }
@@ -183,6 +206,7 @@ void SceneMain::shootPlayer()
     projectile->position.x = player.position.x + player.width / 2 - projectile->width / 2;
     projectile->position.y = player.position.y;
     projectilesPlayer.push_back(projectile); // 将子弹添加到子弹列表中
+    Mix_PlayChannel(0, sounds[SoundType::PLAYER_SHOOT], 0); // 播放射击音效
 }
 
 // SceneMain类的成员函数，用于更新玩家发射的投射物
@@ -200,7 +224,7 @@ void SceneMain::updatePlayerProjectiles(float deltaTime)
             delete projectile;
             // 从列表中移除该投射物，并返回新的迭代器位置
             iterator = projectilesPlayer.erase(iterator);
-            SDL_Log("子弹被移除了...");
+            // SDL_Log("子弹被移除了...");
         } else {
             bool hit = false;
             // 遍历敌人列表，检查是否有敌人被击中
@@ -228,6 +252,7 @@ void SceneMain::updatePlayerProjectiles(float deltaTime)
                     // 从列表中移除该投射物，并返回新的迭代器位置
                     iterator = projectilesPlayer.erase(iterator);
                     hit = true;
+                    Mix_PlayChannel(0, sounds[SoundType::HIT], 0); // 播放敌人被击中音效
                     // 跳出敌人列表的循环
                     break;
                 }
@@ -325,6 +350,7 @@ void SceneMain::updateEnemies(float deltaTime)
                 enemyExplode(enemy);
                 // 从敌人列表中移除该敌人，并更新迭代器指向下一个有效元素
                 iterator = enemies.erase(iterator);
+                Mix_PlayChannel(-1, sounds[SoundType::ENEMY_EXPLODE], 0);
             } else {
                 // 如果生命值大于0，迭代器指向下一个敌人
                 ++iterator;
@@ -353,6 +379,7 @@ void SceneMain::shootEnemy(Enemy* enemy)
     projectile->position.y = enemy->position.y + enemy->height / 2 - projectile->height / 2;
     projectile->direction = getDirection(enemy);
     projectilesEnemy.push_back(projectile);
+    Mix_PlayChannel(-1, sounds[SoundType::ENEMY_SHOOT], 0);
 }
 
 // 定义SceneMain类中的getDirection方法，用于计算从敌人到玩家的方向向量
@@ -405,6 +432,7 @@ void SceneMain::updateEnemyProjectiles(float deltaTime)
                 player.currentHealth -= projectile->damage;
                 delete projectile;
                 iterator = projectilesEnemy.erase(iterator);
+                Mix_PlayChannel(-1, sounds[SoundType::HIT], 0);
             } else {
                 ++iterator;
             }
@@ -470,6 +498,7 @@ void SceneMain::updatePlayer(float)
     if (player.currentHealth <= 0) {
         isDead = true;
         addExplosion(explosionTemplate, &player, explosions);
+        Mix_PlayChannel(-1, sounds[SoundType::PLAYER_EXPLODE], 0);
     }
 }
 
@@ -583,7 +612,7 @@ void SceneMain::updateItems(float deltaTime)
             player.width, player.height
         };
         // 检查玩家是否与物品发生碰撞
-        if (SDL_HasIntersection(&playerRect, &itemRect)) {
+        if (SDL_HasIntersection(&playerRect, &itemRect) && isDead == false) {
             playerGetItem(item);
             delete item;
             iterator = items.erase(iterator);
@@ -598,6 +627,7 @@ void SceneMain::playerGetItem(Item* item)
 {
     if (item->type == ItemType::Life) {
         player.currentHealth += 1;
+        Mix_PlayChannel(-1, sounds[SoundType::GET_ITEM], 0);
         if (player.currentHealth > player.maxHealth) {
             player.currentHealth = player.maxHealth;
         }

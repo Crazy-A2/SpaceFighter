@@ -2,12 +2,25 @@
 
 #include "Object.h"
 #include "Scene.h"
+
 #include <SDL_events.h>
+#include <SDL_mixer.h>
+
 #include <list>
+#include <map>
 #include <random>
 
 // #include "Game.h"
 struct Game; // 不导入头文件 防止可能的循环引用
+
+enum class SoundType {
+    PLAYER_SHOOT,
+    ENEMY_SHOOT,
+    PLAYER_EXPLODE,
+    ENEMY_EXPLODE,
+    HIT,
+    GET_ITEM,
+};
 
 // 定义一个名为 SceneMain 的结构体，继承自 Scene 类，并使用 final 关键字表示不允许被继承
 struct SceneMain final : Scene {
@@ -45,6 +58,7 @@ private:
     bool isDead {}; //                                  用于表示玩家是否死亡
     std::mt19937 gen; // 定义一个随机数生成器对象 gen，使用 Mersenne Twister 19937 算法
     std::uniform_real_distribution<float> dis; // 定义一个均匀分布的对象 dis，用于生成浮点数
+    Mix_Music* bgm; //                                  定义一个音乐对象，用于播放背景音乐
 
     Explosion explosionTemplate; //                     定义一个爆炸效果的模板
     ProjectileEnemy projectileEnemyTemplate; //         定义敌人子弹的模板对象
@@ -57,4 +71,5 @@ private:
     std::list<Enemy*> enemies; //                       存储敌人对象的列表
     std::list<ProjectilePlayer*> projectilesPlayer; //  存储玩家子弹对象的子弹列表
     std::list<Item*> items; //                          存储道具对象的列表
+    std::map<SoundType, Mix_Chunk*> sounds; //        存储音效
 };

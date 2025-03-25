@@ -32,7 +32,7 @@ struct Enemy {
     int width {}; //                    敌人的宽度
     int height {}; //                   敌人的高度
     int speed { 300 }; //               敌人的移动速度
-    Uint32 coolDown { 1000 }; //        敌人射击的冷却时间，单位为毫秒
+    Uint32 coolDown { 2000 }; //        敌人射击的冷却时间，单位为毫秒
     Uint32 lastShootTime {}; //         敌人上次射击的时间，单位为毫秒
     int currentHealth { 2 }; //         敌人的当前生命值
 };
@@ -76,5 +76,5 @@ struct Item {
     int height {}; //                       道具的高度
     ItemType type { ItemType::Life }; //    道具的具体类型
     int speed { 200 }; //                   道具的移动速度
-    int bounceCount { 3 }; //                    道具的反弹次数
+    int bounceCount { 3 }; //               道具的反弹次数
 };

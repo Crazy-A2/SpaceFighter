@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "SceneMain.h"
 #include <SDL_image.h>
+#include <SDL_mixer.h>
 #include <iostream>
 
 Game::~Game() { clean(); }
@@ -40,6 +41,18 @@ void Game::init()
         isRunning = false;
     }
 
+    // SDL_Mixer 初始化
+    if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) != (MIX_INIT_MP3 | MIX_INIT_OGG)) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_Init Error: %s\n", Mix_GetError());
+        isRunning = false;
+    }
+    // 打开音频设备
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_OpenAudio Error: %s\n", Mix_GetError());
+        isRunning = false;
+    }
+    Mix_AllocateChannels(32); // 分配32个音频通道
+
     // 初始化当前场景
     // currentScene = new SceneMain();
     changeScene(new SceneMain());
@@ -58,7 +71,7 @@ void Game::run()
         if (diff < frameTime) {
             SDL_Delay(frameTime - diff);
             deltaTime = frameTime / 1000.0f;
-        }else{
+        } else {
             deltaTime = diff / 1000.0f;
         }
     }
@@ -72,6 +85,8 @@ void Game::clean()
     }
 
     IMG_Quit();
+    Mix_CloseAudio();
+    Mix_Quit();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -89,7 +104,7 @@ void Game::changeScene(Scene* scene)
         delete currentScene;
     }
 
-    // 将传入的新场景指针赋值给currentScene，更新当前场景
+    // 将传入的新场景指针赋值给currentScene，更换当前场景
     currentScene = scene;
     // 调用新场景的init函数，进行初始化工作，例如加载资源
     currentScene->init();
