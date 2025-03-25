@@ -84,6 +84,6 @@ struct Background {
     SDL_FPoint position { 0, 0 }; //        背景的位置
     int width {}; //                        背景的宽度
     int height {}; //                       背景的高度
-    int speed { 30 }; //                    背景的移动速度
+    int speed { 40 }; //                    背景的移动速度
     float offset {}; //                     背景的偏移量
 };
