@@ -26,9 +26,9 @@ struct Game {
 
 private:
     bool isRunning { true };
-    Scene* currentScene { nullptr };
-    SDL_Window* window { nullptr };
-    SDL_Renderer* renderer { nullptr };
+    Scene* currentScene {};
+    SDL_Window* window {};
+    SDL_Renderer* renderer {};
     int windowWidth { 600 };
     int windowHeight { 800 };
     int FPS { 60 };

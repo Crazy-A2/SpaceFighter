@@ -25,11 +25,7 @@ static void initTextureByTemplate(Game& game, T& object, const char* imageName, 
     if (!isSquare) {
         object.height /= 4;
     }
-    // if (width) {
-    //     object.width = width;
-    // } else {
-    //     object.width /= 4;
-    // }
+
     object.width = isSquare ? object.height : (object.width / 4);
 }
 
@@ -54,6 +50,7 @@ void SceneMain::init()
     initTextureByTemplate(game, enemyTemplate, "image/insect-2.png");
     initTextureByTemplate(game, projectileEnemyTemplate, "image/laser-2.png");
     initTextureByTemplate(game, explosionTemplate, "effect/explosion.png", true);
+    initTextureByTemplate(game, itemLifeTemplate, "image/bonus_life.png");
     // 设置爆炸动画的帧数 防止序列动画文件被替换后导致帧数不匹配
     explosionTemplate.totalFrames = explosionTemplate.width / explosionTemplate.height;
 }
@@ -68,6 +65,7 @@ void SceneMain::update(float deltaTime)
     updateEnemies(deltaTime); // 更新敌人状态
     updatePlayer(deltaTime); // 更新玩家状态
     updateExplosions(deltaTime); // 更新爆炸效果
+    updateItems(deltaTime); // 更新道具
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -93,9 +91,9 @@ void SceneMain::render()
         SDL_RenderCopy(game.getRenderer(), player.texture, NULL, &playerRect);
     }
 
-    renderEnemies();
-    // 渲染爆炸动画
-    renderExplosions();
+    renderEnemies(); // 渲染敌人
+    renderItems(); // 渲染道具
+    renderExplosions(); // 渲染爆炸动画
 }
 
 // 清理容器
@@ -125,12 +123,14 @@ void SceneMain::clean()
     cleanContainer(enemies);
     cleanContainer(projectilesEnemy);
     cleanContainer(explosions);
+    cleanContainer(items);
 
     destroyTextureTemplate(player);
-    destroyTextureTemplate(projectilePlayerTemplate);  
+    destroyTextureTemplate(projectilePlayerTemplate);
     destroyTextureTemplate(enemyTemplate);
     destroyTextureTemplate(projectileEnemyTemplate);
     destroyTextureTemplate(explosionTemplate);
+    destroyTextureTemplate(itemLifeTemplate);
 }
 
 void SceneMain::handleEvents(SDL_Event* event) { }
@@ -431,25 +431,33 @@ void SceneMain::renderEnemyProjectiles()
 }
 
 template <typename ReferencePoint>
+// 定义一个静态函数addExplosion，用于在爆炸列表中添加一个新的爆炸效果
+// 参数explosionTemplate是一个常量引用，表示爆炸的模板
+// 参数object是一个指向ReferencePoint对象的指针，表示爆炸发生的位置
+// 参数explosions是一个指向std::list<Explosion*>的引用，表示存储爆炸对象的列表
 static void addExplosion(const Explosion& explosionTemplate, ReferencePoint object, std::list<Explosion*>& explosions)
 {
+    // 获取当前时间，单位为毫秒
     auto currentTime = SDL_GetTicks();
+    // 根据模板创建一个新的爆炸对象
     auto explosion = new Explosion(explosionTemplate);
+    // 设置爆炸对象的x坐标，使其位于object的中心位置
     explosion->position.x = object->position.x + object->width / 2 - explosion->width / 2;
+    // 设置爆炸对象的y坐标，使其位于object的中心位置
     explosion->position.y = object->position.y + object->height / 2 - explosion->height / 2;
+    // 设置爆炸对象的开始时间
     explosion->startTime = currentTime;
+    // 将新的爆炸对象添加到爆炸列表中
     explosions.push_back(explosion);
 }
 
 void SceneMain::enemyExplode(Enemy* enemy)
 {
-    // auto currentTime = SDL_GetTicks();
-    // auto explosion = new Explosion(explosionTemplate);
-    // explosion->position.x = enemy->position.x + enemy->width / 2 - explosion->width / 2;
-    // explosion->position.y = enemy->position.y + enemy->height / 2 - explosion->height / 2;
-    // explosion->startTime = currentTime;
-    // explosions.push_back(explosion);
     addExplosion(explosionTemplate, enemy, explosions);
+    // 生成一个随机数，决定是否掉落道具
+    if (dis(gen) < 0.5f) {
+        dropItem(enemy);
+    }
     delete enemy;
 }
 
@@ -460,13 +468,7 @@ void SceneMain::updatePlayer(float)
         return;
     }
     if (player.currentHealth <= 0) {
-        // auto currentTime = SDL_GetTicks();
         isDead = true;
-        // auto explosion = new Explosion(explosionTemplate);
-        // explosion->position.x = player.position.x + player.width / 2 - explosion->width / 2;
-        // explosion->position.y = player.position.y + player.height / 2 - explosion->height / 2;
-        // explosion->startTime = currentTime;
-        // explosions.push_back(explosion);
         addExplosion(explosionTemplate, &player, explosions);
     }
 }
@@ -512,9 +514,105 @@ void SceneMain::renderExplosions()
         };
         SDL_RenderCopy(game.getRenderer(), explosion->texture, &src, &dst);
 
+        // TODO debug 完删除 爆炸动画仅有2帧
         using std::cout, std::format;
-        cout << format("源矩形{} {} {} {}\n", src.x, src.y, src.w, src.h);
+        // cout << format("源矩形{} {} {} {}\n", src.x, src.y, src.w, src.h);
         // cout << format("目标矩形{} {} {} {}\n", dst.x, dst.y, dst.w, dst.h);
         cout << format("当前帧：{}\n\n", explosion->currentFrame);
+    }
+}
+
+// 在敌人死亡时生成并掉落物品
+void SceneMain::dropItem(Enemy* enemy)
+{
+    // 创建一个新的物品对象，使用itemLifeTemplate作为模板
+    auto item = new Item(itemLifeTemplate);
+    // 设置物品的初始位置为敌人的中心位置
+    // 物品的x坐标为敌人的x坐标加上敌人宽度的一半再减去物品宽度的一半，使物品出现在敌人中心
+    item->position.x = enemy->position.x + enemy->width / 2 - item->width / 2;
+    // 物品的y坐标为敌人的y坐标加上敌人高度的一半再减去物品高度的一半，使物品出现在敌人中心
+    item->position.y = enemy->position.y + enemy->height / 2 - item->height / 2;
+    // 生成一个随机角度，用于确定物品掉落的方向
+    // dis是一个分布对象，gen是一个随机数生成器
+    float angle = dis(gen) * 2 * M_PI;
+    // 根据生成的角度计算物品的x方向上的速度分量
+    item->direction.x = cos(angle);
+    // 根据生成的角度计算物品的y方向上的速度分量
+    item->direction.y = sin(angle);
+    // 将生成的物品添加到场景中的物品列表中
+    items.push_back(item);
+}
+
+// 更新场景中的物品状态
+void SceneMain::updateItems(float deltaTime)
+{
+    for (auto iterator = items.begin(); iterator != items.end();) {
+        auto item = *iterator;
+        // 更新物品的位置
+        item->position.x += item->direction.x * item->speed * deltaTime;
+        item->position.y += item->direction.y * item->speed * deltaTime;
+
+        // 物品到屏幕边缘时反弹
+        if (item->bounceCount >= 0 && item->position.x < 0 || item->position.x + item->width > game.getWindowWidth()) {
+            item->direction.x = -item->direction.x;
+            --item->bounceCount;
+        }
+        if (item->bounceCount >= 0 && item->position.y < 0 || item->position.y + item->height > game.getWindowHeight()) {
+            item->direction.y = -item->direction.y;
+            --item->bounceCount;
+        }
+
+        // 如果超出屏幕范围则删除
+        if (item->position.x + item->width < 0
+            || item->position.x > game.getWindowWidth()
+            || item->position.y + item->height < 0
+            || item->position.y > game.getWindowHeight()) {
+            delete item;
+            iterator = items.erase(iterator);
+            continue;
+        }
+
+        SDL_Rect itemRect {
+            static_cast<int>(item->position.x),
+            static_cast<int>(item->position.y),
+            item->width, item->height
+        };
+        SDL_Rect playerRect {
+            static_cast<int>(player.position.x),
+            static_cast<int>(player.position.y),
+            player.width, player.height
+        };
+        // 检查玩家是否与物品发生碰撞
+        if (SDL_HasIntersection(&playerRect, &itemRect)) {
+            playerGetItem(item);
+            delete item;
+            iterator = items.erase(iterator);
+            continue;
+        }
+        ++iterator;
+    }
+}
+
+// 玩家拾取物品
+void SceneMain::playerGetItem(Item* item)
+{
+    if (item->type == ItemType::Life) {
+        player.currentHealth += 1;
+        if (player.currentHealth > player.maxHealth) {
+            player.currentHealth = player.maxHealth;
+        }
+    }
+}
+
+// 渲染场景中的物品
+void SceneMain::renderItems()
+{
+    for (auto& item : items) {
+        SDL_Rect itemRect {
+            static_cast<int>(item->position.x),
+            static_cast<int>(item->position.y),
+            item->width, item->height
+        };
+        SDL_RenderCopy(game.getRenderer(), item->texture, NULL, &itemRect);
     }
 }
