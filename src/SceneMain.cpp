@@ -34,6 +34,8 @@ void SceneMain::init()
     }
     Mix_PlayMusic(bgm, -1); // -1 表示循环播放
 
+    uiHealth = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/Health UI Black.png", PROJECT_DIR).c_str());
+
     // 读取音效
     sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/laser_shoot4.wav", PROJECT_DIR).c_str());
     sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/xs_laser.wav", PROJECT_DIR).c_str());
@@ -101,9 +103,10 @@ void SceneMain::render()
         SDL_RenderCopy(game.getRenderer(), player.texture, NULL, &playerRect);
     }
 
-    renderEnemies(); // 渲染敌人
-    renderItems(); // 渲染道具
-    renderExplosions(); // 渲染爆炸动画
+    renderEnemies(); //     渲染敌人
+    renderItems(); //       渲染道具
+    renderExplosions(); //  渲染爆炸动画
+    renderUI(); //          渲染UI
 }
 
 // 清理容器
@@ -141,6 +144,11 @@ void SceneMain::clean()
     cleanContainer(projectilesEnemy);
     cleanContainer(explosions);
     cleanContainer(items);
+
+    // 释放UI纹理占用的内存
+    if (uiHealth != nullptr) {
+        SDL_DestroyTexture(uiHealth);
+    }
 
     destroyTextureTemplate(player);
     destroyTextureTemplate(projectilePlayerTemplate);
@@ -644,5 +652,23 @@ void SceneMain::renderItems()
             item->width, item->height
         };
         SDL_RenderCopy(game.getRenderer(), item->texture, NULL, &itemRect);
+    }
+}
+
+void SceneMain::renderUI()
+{
+    int x { 10 };
+    int y { 10 };
+    int size { 32 };
+    int offset { 30 };
+    SDL_SetTextureColorMod(uiHealth, 100, 100, 100);
+    for (int i { 0 }; i < player.maxHealth; ++i) {
+        SDL_Rect dstRect { x + i * offset, y, size, size };
+        SDL_RenderCopy(game.getRenderer(), uiHealth, NULL, &dstRect);
+    }
+    SDL_SetTextureColorMod(uiHealth, 255, 255, 255);
+    for (int i { 0 }; i < player.currentHealth; ++i) {
+        SDL_Rect dstRect { x + i * offset, y, size, size };
+        SDL_RenderCopy(game.getRenderer(), uiHealth, NULL, &dstRect);
     }
 }

@@ -51,14 +51,16 @@ struct SceneMain final : Scene {
     void updateItems(float deltaTime); //               更新道具逻辑 deltaTime 表示时间间隔
     void playerGetItem(Item* item); //                  玩家拾取道具
     void renderItems(); //                              渲染道具
+    void renderUI(); //                                 渲染UI
 
 private:
     Game& game; //                                      引用 Game 对象，用于访问游戏状态和资源
     Player player; //                                   玩家对象
     bool isDead {}; //                                  用于表示玩家是否死亡
+    Mix_Music* bgm; //                                  定义一个音乐对象，用于播放背景音乐
+    SDL_Texture* uiHealth; //                           定义一个纹理对象，用于显示玩家生命值
     std::mt19937 gen; // 定义一个随机数生成器对象 gen，使用 Mersenne Twister 19937 算法
     std::uniform_real_distribution<float> dis; // 定义一个均匀分布的对象 dis，用于生成浮点数
-    Mix_Music* bgm; //                                  定义一个音乐对象，用于播放背景音乐
 
     Explosion explosionTemplate; //                     定义一个爆炸效果的模板
     ProjectileEnemy projectileEnemyTemplate; //         定义敌人子弹的模板对象
@@ -71,5 +73,5 @@ private:
     std::list<Enemy*> enemies; //                       存储敌人对象的列表
     std::list<ProjectilePlayer*> projectilesPlayer; //  存储玩家子弹对象的子弹列表
     std::list<Item*> items; //                          存储道具对象的列表
-    std::map<SoundType, Mix_Chunk*> sounds; //        存储音效
+    std::map<SoundType, Mix_Chunk*> sounds; //          存储音效
 };
