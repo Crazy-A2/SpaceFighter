@@ -2,6 +2,7 @@
 #include "SceneMain.h"
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <format>
 #include <iostream>
 
 Game::~Game() { clean(); }
@@ -53,8 +54,18 @@ void Game::init()
     }
     Mix_AllocateChannels(32); // 分配32个音频通道
 
+    // 初始化背景卷轴
+    nearStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-A.png", PROJECT_DIR).c_str());
+    SDL_QueryTexture(nearStars.texture, NULL, NULL, &nearStars.width, &nearStars.height);
+    nearStars.width /= 2;
+    nearStars.height /= 2;
+    farStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-B.png", PROJECT_DIR).c_str());
+    SDL_QueryTexture(farStars.texture, NULL, NULL, &farStars.width, &farStars.height);
+    farStars.width /= 2;
+    farStars.height /= 2;
+    farStars.speed = 20;
+
     // 初始化当前场景
-    // currentScene = new SceneMain();
     changeScene(new SceneMain());
 }
 
@@ -82,6 +93,12 @@ void Game::clean()
     if (currentScene != nullptr) {
         currentScene->clean();
         delete currentScene;
+    }
+    if (nearStars.texture != nullptr) {
+        SDL_DestroyTexture(nearStars.texture);
+    }
+    if (farStars.texture != nullptr) {
+        SDL_DestroyTexture(farStars.texture);
     }
 
     IMG_Quit();
@@ -126,15 +143,46 @@ void Game::handleEvent(SDL_Event* event)
 
 void Game::update(float deltaTime)
 {
+    backgroundUpdate(deltaTime);
     currentScene->update(deltaTime);
 }
 
 void Game::render()
 {
-    // 清空
-    SDL_RenderClear(renderer);
-    // 渲染
-    currentScene->render();
-    // 显示更新
-    SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer); //   清空
+    renderBackground(); //          渲染背景
+    currentScene->render(); //      渲染
+    SDL_RenderPresent(renderer); // 显示更新
+}
+
+void Game::backgroundUpdate(float deltaTime)
+{
+    nearStars.offset += nearStars.speed * deltaTime;
+    if (nearStars.offset >= 0) {
+        nearStars.offset -= nearStars.height;
+    }
+
+    farStars.offset += farStars.speed * deltaTime;
+    if (farStars.offset >= 0) {
+        farStars.offset -= farStars.height;
+    }
+}
+
+void Game::renderBackground()
+{
+    // 渲染远景
+    for (int posY { static_cast<int>(farStars.offset) }; posY < getWindowHeight(); posY += farStars.height) {
+        for (int posX = 0; posX < getWindowWidth(); posX += farStars.width) {
+            SDL_Rect dstRect = { posX, posY, farStars.width, farStars.height };
+            SDL_RenderCopy(renderer, farStars.texture, NULL, &dstRect);
+        }
+    }
+
+    // 渲染近景
+    for (int posY { static_cast<int>(nearStars.offset) }; posY < getWindowHeight(); posY += nearStars.height) {
+        for (int posX = 0; posX < getWindowWidth(); posX += nearStars.width) {
+            SDL_Rect dstRect = { posX, posY, nearStars.width, nearStars.height };
+            SDL_RenderCopy(renderer, nearStars.texture, NULL, &dstRect);
+        }
+    }
 }

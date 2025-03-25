@@ -78,3 +78,12 @@ struct Item {
     int speed { 200 }; //                   道具的移动速度
     int bounceCount { 3 }; //               道具的反弹次数
 };
+
+struct Background {
+    SDL_Texture* texture {}; //             背景的纹理指针
+    SDL_FPoint position { 0, 0 }; //        背景的位置
+    int width {}; //                        背景的宽度
+    int height {}; //                       背景的高度
+    int speed { 30 }; //                    背景的移动速度
+    float offset {}; //                     背景的偏移量
+};
