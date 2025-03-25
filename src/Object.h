@@ -56,6 +56,5 @@ struct Explosion {
     int currentFrame { 0 }; // 爆炸的当前帧
     int totalFrames { 8 }; // 爆炸的总帧数
     Uint32 startTime { 0 }; // 爆炸开始的时间，单位为毫秒
-    // Uint32 duration { 500 }; // 爆炸的持续时间，单位为毫秒
     Uint32 FPS { 10 }; // 爆炸的帧率，单位为帧/秒
 };

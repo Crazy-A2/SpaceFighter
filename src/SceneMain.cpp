@@ -98,41 +98,39 @@ void SceneMain::render()
     renderExplosions();
 }
 
+// 清理容器
+template <typename T>
+static void cleanContainer(std::list<T*>& container)
+{
+    for (auto& item : container) {
+        if (item != nullptr) {
+            delete item;
+        }
+    }
+    container.clear();
+}
+
+// 清理模板
+template <typename T>
+static void destroyTextureTemplate(T& object)
+{
+    if (object.texture != nullptr) {
+        SDL_DestroyTexture(object.texture);
+    }
+}
+
 void SceneMain::clean()
 {
-    // 清理容器
-    for (auto& projectile : projectilesPlayer) {
-        if (projectile != nullptr) {
-            delete projectile;
-        }
-    }
-    projectilesPlayer.clear();
-    for (auto& enemy : enemies) {
-        if (enemy != nullptr) {
-            delete enemy;
-        }
-    }
-    enemies.clear();
-    for (auto& projectile : projectilesEnemy) {
-        if (projectile != nullptr) {
-            delete projectile;
-        }
-    }
-    projectilesEnemy.clear();
+    cleanContainer(projectilesPlayer);
+    cleanContainer(enemies);
+    cleanContainer(projectilesEnemy);
+    cleanContainer(explosions);
 
-    // 清理模板
-    if (player.texture != nullptr) {
-        SDL_DestroyTexture(player.texture);
-    }
-    if (projectilePlayerTemplate.texture != nullptr) {
-        SDL_DestroyTexture(projectilePlayerTemplate.texture);
-    }
-    if (enemyTemplate.texture != nullptr) {
-        SDL_DestroyTexture(enemyTemplate.texture);
-    }
-    if (projectileEnemyTemplate.texture != nullptr) {
-        SDL_DestroyTexture(projectileEnemyTemplate.texture);
-    }
+    destroyTextureTemplate(player);
+    destroyTextureTemplate(projectilePlayerTemplate);  
+    destroyTextureTemplate(enemyTemplate);
+    destroyTextureTemplate(projectileEnemyTemplate);
+    destroyTextureTemplate(explosionTemplate);
 }
 
 void SceneMain::handleEvents(SDL_Event* event) { }
