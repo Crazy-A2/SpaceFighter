@@ -1,7 +1,10 @@
 #include "Game.h"
 #include "SceneMain.h"
+
 #include <SDL_image.h>
 #include <SDL_mixer.h>
+#include <SDL_ttf.h>
+
 #include <format>
 #include <iostream>
 
@@ -54,6 +57,11 @@ void Game::init()
     }
     Mix_AllocateChannels(32); // 分配32个音频通道
 
+    if (!TTF_Init() == -1) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_Init Error: %s\n", TTF_GetError());
+        isRunning = false;
+    }
+
     // 初始化背景卷轴
     nearStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-A.png", PROJECT_DIR).c_str());
     SDL_QueryTexture(nearStars.texture, NULL, NULL, &nearStars.width, &nearStars.height);
@@ -104,6 +112,7 @@ void Game::clean()
     IMG_Quit();
     Mix_CloseAudio();
     Mix_Quit();
+    TTF_Quit();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

@@ -12,10 +12,12 @@ SceneMain::SceneMain()
 
 SceneMain::~SceneMain() { }
 
+using std::format;
+
 template <typename T>
 static void initTextureByTemplate(Game& game, T& object, const char* imageName, bool isSquare = false)
 {
-    object.texture = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/{}", PROJECT_DIR, imageName).c_str());
+    object.texture = IMG_LoadTexture(game.getRenderer(), format("{}/assets/{}", PROJECT_DIR, imageName).c_str());
     SDL_QueryTexture(object.texture, NULL, NULL, &object.width, &object.height);
     // 将图片纹理的宽度和高度缩小为原来的 1 / 4
     if (!isSquare) {
@@ -28,21 +30,23 @@ static void initTextureByTemplate(Game& game, T& object, const char* imageName, 
 void SceneMain::init()
 {
     // 读取并播放背景音乐
-    bgm = Mix_LoadMUS(std::format("{}/assets/music/03_Racing_Through_Asteroids_Loop.ogg", PROJECT_DIR).c_str());
+    bgm = Mix_LoadMUS(format("{}/assets/music/03_Racing_Through_Asteroids_Loop.ogg", PROJECT_DIR).c_str());
     if (bgm == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load music: %s", Mix_GetError());
     }
     Mix_PlayMusic(bgm, -1); // -1 表示循环播放
 
-    uiHealth = IMG_LoadTexture(game.getRenderer(), std::format("{}/assets/image/Health UI Black.png", PROJECT_DIR).c_str());
+    uiHealth = IMG_LoadTexture(game.getRenderer(), format("{}/assets/image/Health UI Black.png", PROJECT_DIR).c_str());
+
+    scoreFont = TTF_OpenFont(format("{}/assets/font/VonwaonBitmap-12px.ttf", PROJECT_DIR).c_str(), 24);
 
     // 读取音效
-    sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/laser_shoot4.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(std::format("{}/assets/sound/xs_laser.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::PLAYER_EXPLODE] = Mix_LoadWAV(std::format("{}/assets/sound/explosion2.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::ENEMY_EXPLODE] = Mix_LoadWAV(std::format("{}/assets/sound/explosion3.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::GET_ITEM] = Mix_LoadWAV(std::format("{}/assets/sound/eff11.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::HIT] = Mix_LoadWAV(std::format("{}/assets/sound/eff5.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(format("{}/assets/sound/laser_shoot4.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(format("{}/assets/sound/xs_laser.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::PLAYER_EXPLODE] = Mix_LoadWAV(format("{}/assets/sound/explosion2.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::ENEMY_EXPLODE] = Mix_LoadWAV(format("{}/assets/sound/explosion3.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::GET_ITEM] = Mix_LoadWAV(format("{}/assets/sound/eff11.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::HIT] = Mix_LoadWAV(format("{}/assets/sound/eff5.wav", PROJECT_DIR).c_str());
 
     // 初始化随机数生成器
     std::random_device rd;
@@ -148,6 +152,11 @@ void SceneMain::clean()
     // 释放UI纹理占用的内存
     if (uiHealth != nullptr) {
         SDL_DestroyTexture(uiHealth);
+    }
+
+    // 释放字体内存
+    if (scoreFont != nullptr) {
+        TTF_CloseFont(scoreFont);
     }
 
     destroyTextureTemplate(player);
@@ -494,6 +503,7 @@ void SceneMain::enemyExplode(Enemy* enemy)
     if (dis(gen) < 0.5f) {
         dropItem(enemy);
     }
+    score += 10;
     delete enemy;
 }
 
@@ -633,6 +643,7 @@ void SceneMain::updateItems(float deltaTime)
 // 玩家拾取物品
 void SceneMain::playerGetItem(Item* item)
 {
+    score += 5;
     if (item->type == ItemType::Life) {
         player.currentHealth += 1;
         Mix_PlayChannel(-1, sounds[SoundType::GET_ITEM], 0);
@@ -657,6 +668,7 @@ void SceneMain::renderItems()
 
 void SceneMain::renderUI()
 {
+    // 渲染血条
     int x { 10 };
     int y { 10 };
     int size { 32 };
@@ -671,4 +683,14 @@ void SceneMain::renderUI()
         SDL_Rect dstRect { x + i * offset, y, size, size };
         SDL_RenderCopy(game.getRenderer(), uiHealth, NULL, &dstRect);
     }
+
+    // 渲染得分
+    auto text { format("得分: {}", score) };
+    SDL_Color color { 255, 255, 255, 255 };
+    SDL_Surface* surface { TTF_RenderUTF8_Solid(scoreFont, text.c_str(), color) };
+    SDL_Texture* texture { SDL_CreateTextureFromSurface(game.getRenderer(), surface) };
+    SDL_Rect dstRect { game.getWindowWidth() - surface->w - 10, 10, surface->w, surface->h };
+    SDL_RenderCopy(game.getRenderer(), texture, NULL, &dstRect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
 }

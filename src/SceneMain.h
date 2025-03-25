@@ -5,6 +5,7 @@
 
 #include <SDL_events.h>
 #include <SDL_mixer.h>
+#include <SDL_ttf.h>
 
 #include <list>
 #include <map>
@@ -61,6 +62,8 @@ private:
     SDL_Texture* uiHealth; //                           定义一个纹理对象，用于显示玩家生命值
     std::mt19937 gen; // 定义一个随机数生成器对象 gen，使用 Mersenne Twister 19937 算法
     std::uniform_real_distribution<float> dis; // 定义一个均匀分布的对象 dis，用于生成浮点数
+    TTF_Font* scoreFont; //                             定义一个字体对象，用于渲染文本
+    int score {}; //                                    得分
 
     Explosion explosionTemplate; //                     定义一个爆炸效果的模板
     ProjectileEnemy projectileEnemyTemplate; //         定义敌人子弹的模板对象
