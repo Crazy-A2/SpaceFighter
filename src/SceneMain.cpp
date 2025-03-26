@@ -1,7 +1,11 @@
 #include "SceneMain.h"
+
 #include "Game.h"
+#include "SceneEnd.h"
 #include "SceneTitle.h"
+
 #include <SDL_image.h>
+
 #include <format>
 #include <iostream>
 #include <random>
@@ -78,6 +82,10 @@ void SceneMain::update(float deltaTime)
     updatePlayer(deltaTime); // 更新玩家状态
     updateExplosions(deltaTime); // 更新爆炸效果
     updateItems(deltaTime); // 更新道具
+    // 玩家死亡后延迟3秒切换场景
+    if (isDead) {
+        changeSceneDelayed(deltaTime, 3.0f);
+    }
 }
 
 // 定义SceneMain类的render函数，用于渲染场景中的主要内容
@@ -694,4 +702,12 @@ void SceneMain::renderUI()
     SDL_RenderCopy(game.getRenderer(), texture, NULL, &dstRect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
+}
+
+void SceneMain::changeSceneDelayed(float deltaTime, float delay)
+{
+    timerEnd += deltaTime;
+    if (timerEnd >= delay) {
+        game.changeScene(new SceneEnd());
+    }
 }

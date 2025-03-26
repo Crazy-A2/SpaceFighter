@@ -20,7 +20,6 @@ void SceneTitle::update(float deltaTime)
     if (timer > 1.0f) {
         timer -= 1.0f;
     }
-    printf("timer: %f\n", timer);
 }
 
 void SceneTitle::render()
