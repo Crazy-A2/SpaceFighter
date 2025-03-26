@@ -25,7 +25,7 @@ enum class SoundType {
 
 // 定义一个名为 SceneMain 的结构体，继承自 Scene 类，并使用 final 关键字表示不允许被继承
 struct SceneMain final : Scene {
-    SceneMain();
+    // SceneMain();
     ~SceneMain();
 
     void init() override; //                            初始化场景
@@ -55,7 +55,7 @@ struct SceneMain final : Scene {
     void renderUI(); //                                 渲染UI
 
 private:
-    Game& game; //                                      引用 Game 对象，用于访问游戏状态和资源
+    // Game& game; //                                      引用 Game 对象，用于访问游戏状态和资源
     Player player; //                                   玩家对象
     bool isDead {}; //                                  用于表示玩家是否死亡
     Mix_Music* bgm; //                                  定义一个音乐对象，用于播放背景音乐

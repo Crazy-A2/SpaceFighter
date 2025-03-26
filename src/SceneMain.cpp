@@ -5,11 +5,6 @@
 #include <iostream>
 #include <random>
 
-SceneMain::SceneMain()
-    : game(Game::getInstance())
-{
-}
-
 SceneMain::~SceneMain() { }
 
 using std::format;

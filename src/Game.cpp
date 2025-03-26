@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "SceneMain.h"
+#include "SceneTitle.h"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -64,33 +65,60 @@ void Game::init()
 
     // 初始化背景卷轴
     nearStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-A.png", PROJECT_DIR).c_str());
+    if (nearStars.texture == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_LoadTexture Error: %s\n", IMG_GetError());
+        isRunning = false;
+    }
     SDL_QueryTexture(nearStars.texture, NULL, NULL, &nearStars.width, &nearStars.height);
     nearStars.width /= 2;
     nearStars.height /= 2;
     farStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-B.png", PROJECT_DIR).c_str());
+    if (farStars.texture == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_LoadTexture Error: %s\n", IMG_GetError());
+        isRunning = false;
+    }
     SDL_QueryTexture(farStars.texture, NULL, NULL, &farStars.width, &farStars.height);
     farStars.width /= 2;
     farStars.height /= 2;
     farStars.speed = 20;
 
+    titleFont = TTF_OpenFont(std::format("{}/assets/font/VonwaonBitmap-16px.ttf", PROJECT_DIR).c_str(), 64);
+    textFont = TTF_OpenFont(std::format("{}/assets/font/VonwaonBitmap-16px.ttf", PROJECT_DIR).c_str(), 32);
+    if (titleFont == NULL || textFont == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont Error: %s\n", TTF_GetError());
+        isRunning = false;
+    }
+
     // 初始化当前场景
-    changeScene(new SceneMain());
+    changeScene(new SceneTitle());
 }
 
 void Game::run()
 {
+    // 主循环，当游戏正在运行时持续执行
     while (isRunning) {
+        // 获取当前帧开始的时间（以毫秒为单位）
         auto frameStart = SDL_GetTicks();
+        // 定义一个SDL事件结构体，用于处理事件
         SDL_Event event;
+        // 处理事件，例如键盘输入、鼠标移动等
         handleEvent(&event);
+        // 更新游戏状态，传入时间差deltaTime
         update(deltaTime);
+        // 渲染游戏画面
         render();
+        // 获取当前帧结束的时间（以毫秒为单位）
         auto frameEnd = SDL_GetTicks();
+        // 计算当前帧的执行时间（以毫秒为单位）
         auto diff = frameEnd - frameStart;
+        // 如果当前帧的执行时间小于目标帧时间（frameTime）
         if (diff < frameTime) {
+            // 通过SDL_Delay函数暂停剩余的时间，以保证帧率稳定
             SDL_Delay(frameTime - diff);
+            // 计算deltaTime为帧时间（以秒为单位）
             deltaTime = frameTime / 1000.0f;
         } else {
+            // 如果当前帧的执行时间超过目标帧时间，则直接使用实际执行时间作为deltaTime
             deltaTime = diff / 1000.0f;
         }
     }
@@ -194,4 +222,22 @@ void Game::renderBackground()
             SDL_RenderCopy(renderer, nearStars.texture, NULL, &dstRect);
         }
     }
+}
+
+// 用于渲染水平居中文本
+void Game::renderTextCentered(const std::string& text, float posY, bool isTitle)
+{
+    SDL_Color color = { 255, 255, 255, 255 }; // 白色
+    SDL_Surface* surface {};
+    if (isTitle) {
+        surface = TTF_RenderUTF8_Solid(titleFont, text.c_str(), color);
+    } else {
+        surface = TTF_RenderUTF8_Solid(textFont, text.c_str(), color);
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    int y { static_cast<int>((getWindowHeight() - surface->h) * posY) };
+    SDL_Rect dstRect = { (getWindowWidth() - surface->w) / 2, y, surface->w, surface->h };
+    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(surface);
 }

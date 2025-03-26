@@ -1,8 +1,16 @@
 #pragma once
 
 #include "Object.h"
-#include "Scene.h"
+// #include "Scene.h"
+
 #include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+// #include <SDL_mixer.h>
+
+#include <string>
+
+struct Scene;
 
 struct Game {
     ~Game();
@@ -15,6 +23,7 @@ struct Game {
     void render();
     void backgroundUpdate(float deltaTime);
     void renderBackground();
+    void renderTextCentered(const std::string& text, float posY, bool isTitle);
 
     static Game& getInstance()
     {
@@ -39,6 +48,8 @@ private:
     float deltaTime;
     Background nearStars;
     Background farStars;
+    TTF_Font* titleFont {};
+    TTF_Font* textFont {};
 
     Game() = default; // 私有化构造函数，防止外部创建对象
     // 禁止拷贝
