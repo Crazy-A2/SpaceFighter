@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Scene.h"
 #include "Game.h"
+#include "Scene.h"
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -9,7 +9,8 @@
 #include "SDL_ttf.h"
 
 class SceneTitle final : public Scene {
-    Mix_Music* bgm; // 背景音乐
+    Mix_Music* bgm {}; //  背景音乐
+    float timer {}; //     计时器
 
 public:
     SceneTitle() = default;

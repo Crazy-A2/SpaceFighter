@@ -1,5 +1,6 @@
 #include "SceneMain.h"
 #include "Game.h"
+#include "SceneTitle.h"
 #include <SDL_image.h>
 #include <format>
 #include <iostream>
@@ -168,7 +169,12 @@ void SceneMain::clean()
     }
 }
 
-void SceneMain::handleEvents(SDL_Event* event) { }
+void SceneMain::handleEvents(SDL_Event* event)
+{
+    if (event->type == SDL_KEYDOWN && event->key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+        game.changeScene(new SceneTitle());
+    }
+}
 
 // SceneMain类的成员函数，用于处理键盘控制
 void SceneMain::keyboardControl(float deltaTime)
