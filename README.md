@@ -1,11 +1,18 @@
 # 太空战机小游戏
 
+![](/assets/readme/image6.png)
+
+![](/assets/readme/image7.png)
+
+![](/assets/readme/image8.png)
+
 想要从头做一个一样的？可以看 [B站教程](https://www.bilibili.com/video/BV1wSCFYQEyc) 
 
 这是一个小游戏，玩家控制一个飞机。
 通过射击敌人来获得分数，同时也要注意躲避敌人的攻击。游戏的目标是尽可能多地获得分数，并挑战自己的极限。
 
 ## Windows 系统如何构建并运行？
+
 1. 克隆仓库或下载代码到本地
 
 2. 下载 [VS 生成工具](https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/)
