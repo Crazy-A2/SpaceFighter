@@ -1,5 +1,7 @@
 #include "SceneEnd.h"
+
 #include "Game.h"
+#include "SceneMain.h"
 
 #include <format>
 #include <string>
@@ -56,6 +58,12 @@ void SceneEnd::handleEvents(SDL_Event* event)
                 printf("enter\n");
                 isTyping = false;
                 SDL_StopTextInput();
+                if (name == "") {
+                    // name = "(❁´◡`❁)=￣ω￣=";
+                    // name = "ahh2333";
+                    name = "无名";
+                }
+                game.insertLeaderBoard(game.getFinalScore(), name);
             }
             if (event->key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
                 if (name != "") {
@@ -64,6 +72,11 @@ void SceneEnd::handleEvents(SDL_Event* event)
             }
         }
     } else {
+        if (event->type == SDL_KEYDOWN) {
+            if (event->key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                game.changeScene(new SceneMain());
+            }
+        }
     }
 };
 
@@ -87,6 +100,19 @@ void SceneEnd::renderPhase1()
 
 void SceneEnd::renderPhase2()
 {
+    game.renderTextCentered("得分榜", 0.1f, true);
+    auto i { 1 };
+    auto posY { 0.2f * game.getWindowHeight() };
+    for (auto& item : game.getLeaderBoard()) {
+        string name { format("{}. {}", i, item.second) };
+        string score { format("{}", item.first) };
+
+        game.renderTextPos(name, 100, static_cast<int>(posY), true);
+        game.renderTextPos(score, 100, static_cast<int>(posY), false);
+        posY += 50;
+        ++i;
+    }
+    FLASHING(game.renderTextCentered("按 ESC 返回游戏", 0.8f, false))
 }
 
 // 定义一个函数，用于从给定的UTF-8字符串中移除最后一个字符

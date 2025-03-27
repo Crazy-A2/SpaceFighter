@@ -244,13 +244,29 @@ SDL_Point Game::renderTextCentered(const std::string& text, float posY, bool isT
     return { dstRect.x + dstRect.w, dstRect.y };
 }
 
-void Game::renderTextPos(const std::string& text, int posX, int posY)
+void Game::renderTextPos(const std::string& text, int posX, int posY, bool isLeft)
 {
     SDL_Color color = { 255, 255, 255, 255 }; // 白色
     SDL_Surface* surface = TTF_RenderUTF8_Solid(textFont, text.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_Rect dstRect = { posX, posY, surface->w, surface->h };
+    SDL_Rect dstRect;
+    if (isLeft) {
+        dstRect = { posX, posY, surface->w, surface->h };
+    } else {
+        dstRect = { getWindowWidth() - posX - surface->w, posY, surface->w, surface->h };
+    }
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);
+}
+
+// 定义一个函数，用于将玩家的得分和名字插入到排行榜中
+void Game::insertLeaderBoard(int score, const std::string name)
+{
+    // 使用insert方法将得分和名字作为一个键值对插入到leaderBoard中
+    leaderBoard.insert({ score, name });
+    // 排行榜保留8条数据
+    if (leaderBoard.size() > 8) {
+        leaderBoard.erase(--leaderBoard.end());
+    }
 }
