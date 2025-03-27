@@ -28,6 +28,8 @@ struct Game {
     void renderTextPos(const std::string& text, int posX, int posY, bool isLeft = true);
     void insertLeaderBoard(int score, const std::string name);
     std::multimap<int, std::string, std::greater<int>>& getLeaderBoard() { return leaderBoard; }
+    void saveDate();
+    void loadDate();
 
     static Game& getInstance()
     {

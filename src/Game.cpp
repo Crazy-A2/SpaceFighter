@@ -1,4 +1,5 @@
 #include "Game.h"
+
 #include "SceneMain.h"
 #include "SceneTitle.h"
 
@@ -7,9 +8,14 @@
 #include <SDL_ttf.h>
 
 #include <format>
+#include <fstream>
 #include <iostream>
 
-Game::~Game() { clean(); }
+Game::~Game()
+{
+    saveDate(); // 保存数据
+    clean();
+}
 
 void Game::init()
 {
@@ -88,6 +94,8 @@ void Game::init()
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont Error: %s\n", TTF_GetError());
         isRunning = false;
     }
+
+    loadDate(); // 加载存档
 
     // 初始化当前场景
     changeScene(new SceneTitle());
@@ -268,5 +276,33 @@ void Game::insertLeaderBoard(int score, const std::string name)
     // 排行榜保留8条数据
     if (leaderBoard.size() > 8) {
         leaderBoard.erase(--leaderBoard.end());
+    }
+}
+
+void Game::saveDate()
+{
+    std::ofstream file(std::format("{}/assets/save.dat", PROJECT_DIR).c_str());
+    if (!file.is_open()) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open file for writing");
+        return;
+    }
+    for (const auto& pair : leaderBoard) {
+        file << pair.first << " " << pair.second << std::endl;
+    }
+}
+
+void Game::loadDate()
+{
+    std::ifstream file(std::format("{}/assets/save.dat", PROJECT_DIR).c_str());
+    if (!file.is_open()) {
+        SDL_Log("Failed to open file for reading");
+        return;
+    }
+
+    leaderBoard.clear();
+    int score {};
+    std::string name;
+    while (file >> score >> name) {
+        leaderBoard.insert({ score, name }); // 插入到排行榜中
     }
 }
