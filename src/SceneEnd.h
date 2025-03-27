@@ -10,6 +10,7 @@ class SceneEnd : public Scene {
 
     void renderPhase1();
     void renderPhase2();
+    void removeLastUTF8Char(std::string& str);
 
 public:
     SceneEnd() = default;
