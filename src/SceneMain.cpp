@@ -526,6 +526,7 @@ void SceneMain::updatePlayer(float)
         isDead = true;
         addExplosion(explosionTemplate, &player, explosions);
         Mix_PlayChannel(-1, sounds[SoundType::PLAYER_EXPLODE], 0);
+        game.setFinalScore(score);
     }
 }
 

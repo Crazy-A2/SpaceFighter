@@ -2,7 +2,15 @@
 
 #include "Scene.h"
 
+#include <string>
+
 class SceneEnd : public Scene {
+    bool isTyping { true };
+    std::string name { "" };
+
+    void renderPhase1();
+    void renderPhase2();
+
 public:
     SceneEnd() = default;
     ~SceneEnd() = default;

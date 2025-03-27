@@ -35,6 +35,8 @@ struct Game {
     SDL_Window* getWindow() { return window; }
     int getWindowWidth() { return windowWidth; }
     int getWindowHeight() { return windowHeight; }
+    int getFinalScore() { return finalScore; }
+    void setFinalScore(int score) { finalScore = score; }
 
 private:
     bool isRunning { true };
@@ -45,11 +47,12 @@ private:
     int windowHeight { 800 };
     int FPS { 60 };
     Uint32 frameTime;
-    float deltaTime;
+    float deltaTime {};
     Background nearStars;
     Background farStars;
     TTF_Font* titleFont {};
     TTF_Font* textFont {};
+    int finalScore {};
 
     Game() = default; // 私有化构造函数，防止外部创建对象
     // 禁止拷贝
