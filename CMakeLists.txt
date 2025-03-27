@@ -32,9 +32,13 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # 链接库文件
 # Windows 下链接动态库需要编译时链接动态库的导入库（.lib）
 target_link_libraries(${PROJECT_NAME} SDL2 SDL2main SDL2_image SDL2_ttf SDL2_mixer)
+# target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image SDL2_ttf SDL2_mixer)
 
 # 定义指向项目根目录的宏
 add_definitions(-DPROJECT_DIR="${PROJECT_SOURCE_DIR}")
+
+# 打包准备 禁止弹出控制台窗口
+Set_Target_Properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 # -----------------------------------------------------------------------------
 # 第二种链接动态库的方式
