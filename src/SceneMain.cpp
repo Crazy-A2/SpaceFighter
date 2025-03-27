@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "SceneEnd.h"
 #include "SceneTitle.h"
+#include "getPath.h"
 
 #include <SDL_image.h>
 
@@ -17,7 +18,9 @@ using std::format;
 template <typename T>
 static void initTextureByTemplate(Game& game, T& object, const char* imageName, bool isSquare = false)
 {
-    object.texture = IMG_LoadTexture(game.getRenderer(), format("{}/assets/{}", PROJECT_DIR, imageName).c_str());
+    auto str = format("assets/{}", imageName).c_str();
+    object.texture = IMG_LoadTexture(game.getRenderer(), getPath(str));
+
     SDL_QueryTexture(object.texture, NULL, NULL, &object.width, &object.height);
     // 将图片纹理的宽度和高度缩小为原来的 1 / 4
     if (!isSquare) {
@@ -30,23 +33,23 @@ static void initTextureByTemplate(Game& game, T& object, const char* imageName, 
 void SceneMain::init()
 {
     // 读取并播放背景音乐
-    bgm = Mix_LoadMUS(format("{}/assets/music/03_Racing_Through_Asteroids_Loop.ogg", PROJECT_DIR).c_str());
+    bgm = Mix_LoadMUS(getPath("assets/music/03_Racing_Through_Asteroids_Loop.ogg"));
     if (bgm == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load music: %s", Mix_GetError());
     }
     Mix_PlayMusic(bgm, -1); // -1 表示循环播放
 
-    uiHealth = IMG_LoadTexture(game.getRenderer(), format("{}/assets/image/Health UI Black.png", PROJECT_DIR).c_str());
+    uiHealth = IMG_LoadTexture(game.getRenderer(), getPath("assets/image/Health UI Black.png"));
 
-    scoreFont = TTF_OpenFont(format("{}/assets/font/VonwaonBitmap-12px.ttf", PROJECT_DIR).c_str(), 24);
+    scoreFont = TTF_OpenFont(getPath("assets/font/VonwaonBitmap-12px.ttf"), 24);
 
     // 读取音效
-    sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(format("{}/assets/sound/laser_shoot4.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(format("{}/assets/sound/xs_laser.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::PLAYER_EXPLODE] = Mix_LoadWAV(format("{}/assets/sound/explosion2.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::ENEMY_EXPLODE] = Mix_LoadWAV(format("{}/assets/sound/explosion3.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::GET_ITEM] = Mix_LoadWAV(format("{}/assets/sound/eff11.wav", PROJECT_DIR).c_str());
-    sounds[SoundType::HIT] = Mix_LoadWAV(format("{}/assets/sound/eff5.wav", PROJECT_DIR).c_str());
+    sounds[SoundType::PLAYER_SHOOT] = Mix_LoadWAV(getPath("assets/sound/laser_shoot4.wav"));
+    sounds[SoundType::ENEMY_SHOOT] = Mix_LoadWAV(getPath("assets/sound/xs_laser.wav"));
+    sounds[SoundType::PLAYER_EXPLODE] = Mix_LoadWAV(getPath("assets/sound/explosion2.wav"));
+    sounds[SoundType::ENEMY_EXPLODE] = Mix_LoadWAV(getPath("assets/sound/explosion3.wav"));
+    sounds[SoundType::GET_ITEM] = Mix_LoadWAV(getPath("assets/sound/eff11.wav"));
+    sounds[SoundType::HIT] = Mix_LoadWAV(getPath("assets/sound/eff5.wav"));
 
     // 初始化随机数生成器
     std::random_device rd;

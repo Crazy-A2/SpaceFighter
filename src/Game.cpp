@@ -2,6 +2,7 @@
 
 #include "SceneMain.h"
 #include "SceneTitle.h"
+#include "getPath.h"
 
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -70,7 +71,7 @@ void Game::init()
     }
 
     // 初始化背景卷轴
-    nearStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-A.png", PROJECT_DIR).c_str());
+    nearStars.texture = IMG_LoadTexture(renderer, getPath("assets/image/Stars-A.png"));
     if (nearStars.texture == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_LoadTexture Error: %s\n", IMG_GetError());
         isRunning = false;
@@ -78,7 +79,7 @@ void Game::init()
     SDL_QueryTexture(nearStars.texture, NULL, NULL, &nearStars.width, &nearStars.height);
     nearStars.width /= 2;
     nearStars.height /= 2;
-    farStars.texture = IMG_LoadTexture(renderer, std::format("{}/assets/image/Stars-B.png", PROJECT_DIR).c_str());
+    farStars.texture = IMG_LoadTexture(renderer, getPath("assets/image/Stars-B.png"));
     if (farStars.texture == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_LoadTexture Error: %s\n", IMG_GetError());
         isRunning = false;
@@ -88,8 +89,8 @@ void Game::init()
     farStars.height /= 2;
     farStars.speed = 20;
 
-    titleFont = TTF_OpenFont(std::format("{}/assets/font/VonwaonBitmap-16px.ttf", PROJECT_DIR).c_str(), 64);
-    textFont = TTF_OpenFont(std::format("{}/assets/font/VonwaonBitmap-16px.ttf", PROJECT_DIR).c_str(), 32);
+    titleFont = TTF_OpenFont(getPath("assets/font/VonwaonBitmap-16px.ttf"), 64);
+    textFont = TTF_OpenFont(getPath("assets/font/VonwaonBitmap-16px.ttf"), 32);
     if (titleFont == NULL || textFont == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont Error: %s\n", TTF_GetError());
         isRunning = false;
@@ -281,7 +282,7 @@ void Game::insertLeaderBoard(int score, const std::string name)
 
 void Game::saveDate()
 {
-    std::ofstream file(std::format("{}/assets/save.dat", PROJECT_DIR).c_str());
+    std::ofstream file(getPath("assets/save.dat"));
     if (!file.is_open()) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open file for writing");
         return;
@@ -293,7 +294,7 @@ void Game::saveDate()
 
 void Game::loadDate()
 {
-    std::ifstream file(std::format("{}/assets/save.dat", PROJECT_DIR).c_str());
+    std::ifstream file(getPath("assets/save.dat"));
     if (!file.is_open()) {
         SDL_Log("Failed to open file for reading");
         return;

@@ -1,12 +1,13 @@
 #include "SceneTitle.h"
 #include "sceneMain.h"
+#include "getPath.h"
 
 #include <format>
 #include <iostream>
 
 void SceneTitle::init()
 {
-    bgm = Mix_LoadMUS(std::format("{}/assets/music/06_Battle_in_Space_Intro.ogg", PROJECT_DIR).c_str());
+    bgm = Mix_LoadMUS(getPath("assets/music/06_Battle_in_Space_Intro.ogg"));
     if (bgm == NULL) {
         printf("Failed to load 06_Battle_in_Space_Intro.ogg! SDL_mixer Error: %s\n", Mix_GetError());
     } else {

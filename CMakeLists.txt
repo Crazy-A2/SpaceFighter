@@ -34,9 +34,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} SDL2 SDL2main SDL2_image SDL2_ttf SDL2_mixer)
 # target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image SDL2_ttf SDL2_mixer)
 
-# 定义指向项目根目录的宏
-add_definitions(-DPROJECT_DIR="${PROJECT_SOURCE_DIR}")
-
 # 打包准备 禁止弹出控制台窗口
 Set_Target_Properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
