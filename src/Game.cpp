@@ -225,7 +225,7 @@ void Game::renderBackground()
 }
 
 // 用于渲染水平居中文本
-void Game::renderTextCentered(const std::string& text, float posY, bool isTitle)
+SDL_Point Game::renderTextCentered(const std::string& text, float posY, bool isTitle)
 {
     SDL_Color color = { 255, 255, 255, 255 }; // 白色
     SDL_Surface* surface {};
@@ -237,6 +237,19 @@ void Game::renderTextCentered(const std::string& text, float posY, bool isTitle)
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     int y { static_cast<int>((getWindowHeight() - surface->h) * posY) };
     SDL_Rect dstRect = { (getWindowWidth() - surface->w) / 2, y, surface->w, surface->h };
+    SDL_RenderCopy(renderer, texture, NULL, &dstRect);
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(surface);
+
+    return { dstRect.x + dstRect.w, dstRect.y };
+}
+
+void Game::renderTextPos(const std::string& text, int posX, int posY)
+{
+    SDL_Color color = { 255, 255, 255, 255 }; // 白色
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(textFont, text.c_str(), color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Rect dstRect = { posX, posY, surface->w, surface->h };
     SDL_RenderCopy(renderer, texture, NULL, &dstRect);
     SDL_DestroyTexture(texture);
     SDL_FreeSurface(surface);

@@ -6,6 +6,11 @@
 
 #include <iostream>
 
+#define FLASHING(x)          \
+    if (blinkTimer > 0.5f) { \
+        x;                   \
+    }
+
 // SceneEnd();
 // ~SceneEnd();
 
@@ -21,7 +26,13 @@ void SceneEnd::init()
     }
 };
 
-void SceneEnd::update(float deltaTime) { };
+void SceneEnd::update(float deltaTime)
+{
+    blinkTimer -= deltaTime;
+    if (blinkTimer < 0.0f) {
+        blinkTimer = 1.0f;
+    }
+};
 
 void SceneEnd::render()
 {
@@ -67,7 +78,10 @@ void SceneEnd::renderPhase1()
     game.renderTextCentered(instrutionText, 0.6f, false);
 
     if (name != "") {
-        game.renderTextCentered(name, 0.8f, false);
+        auto p = game.renderTextCentered(name, 0.8f, false);
+        FLASHING(game.renderTextPos("_", p.x, p.y))
+    } else {
+        FLASHING(game.renderTextCentered("_", 0.8f, false))
     }
 }
 

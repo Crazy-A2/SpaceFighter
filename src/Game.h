@@ -23,7 +23,8 @@ struct Game {
     void render();
     void backgroundUpdate(float deltaTime);
     void renderBackground();
-    void renderTextCentered(const std::string& text, float posY, bool isTitle);
+    SDL_Point renderTextCentered(const std::string& text, float posY, bool isTitle);
+    void renderTextPos(const std::string& text, int posX, int posY);
 
     static Game& getInstance()
     {
